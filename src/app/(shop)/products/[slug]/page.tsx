@@ -3,7 +3,7 @@
 import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-import { ProductType } from '@/types';
+import { ProductType, ReviewType } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import {
   Star,
@@ -15,7 +15,6 @@ import {
   FileText,
   Plus,
   Minus,
-  MessageSquare,
 } from 'lucide-react';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -81,6 +80,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     await addToCart(product, quantity);
     router.push('/checkout');
   };
+
+  const reviewsList: ReviewType[] = product.reviews || [];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-12">
@@ -259,8 +260,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           <h2 className="text-2xl font-bold text-white mb-6">Customer Reviews & Inspection Notes</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
-              {product.reviews && product.reviews.length > 0 ? (
-                product.reviews.map((rev) => (
+              {reviewsList.length > 0 ? (
+                reviewsList.map((rev) => (
                   <div key={rev.id} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

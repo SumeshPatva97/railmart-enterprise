@@ -27,6 +27,17 @@ export interface BrandType {
   logo?: string;
 }
 
+export interface ReviewType {
+  id: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  user?: {
+    name: string;
+    avatar?: string;
+  };
+}
+
 export interface ProductType {
   id: string;
   name: string;
@@ -49,6 +60,7 @@ export interface ProductType {
   isFeatured: boolean;
   isPopular: boolean;
   images: { id?: string; url: string; alt?: string; isPrimary?: boolean }[];
+  reviews?: ReviewType[];
   createdAt: string;
 }
 
