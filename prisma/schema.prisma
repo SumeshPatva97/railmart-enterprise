@@ -91,6 +91,8 @@ model Product {
   rating          Float          @default(4.5)
   reviewsCount    Int            @default(0)
   status          String         @default("ACTIVE") // ACTIVE, DRAFT, OUT_OF_STOCK
+  isVisible       Boolean        @default(true)
+  is_deleted      Int            @default(0) // 0 = not deleted, 1 = deleted (soft delete)
   isFeatured      Boolean        @default(false)
   isPopular       Boolean        @default(false)
   createdAt       DateTime       @default(now())

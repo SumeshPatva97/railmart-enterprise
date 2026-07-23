@@ -57,6 +57,8 @@ export interface ProductType {
   rating: number;
   reviewsCount: number;
   status: 'ACTIVE' | 'DRAFT' | 'OUT_OF_STOCK';
+  isVisible: boolean;
+  is_deleted: number; // 0 = not deleted, 1 = deleted
   isFeatured: boolean;
   isPopular: boolean;
   images: { id?: string; url: string; alt?: string; isPrimary?: boolean }[];

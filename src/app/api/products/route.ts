@@ -14,11 +14,26 @@ export async function GET(req: NextRequest) {
     const minRating = searchParams.get('minRating');
     const featured = searchParams.get('featured');
     const popular = searchParams.get('popular');
+    const deletedOnly = searchParams.get('deletedOnly');
+    const includeDeleted = searchParams.get('includeDeleted');
+    const adminView = searchParams.get('adminView');
     const sort = searchParams.get('sort') || 'newest';
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const limit = parseInt(searchParams.get('limit') || '50');
 
     const whereClause: any = {};
+
+    // Soft delete filtering
+    if (deletedOnly === 'true') {
+      whereClause.is_deleted = 1;
+    } else if (includeDeleted !== 'true') {
+      whereClause.is_deleted = 0;
+    }
+
+    // Customer vs Admin visibility filtering
+    if (adminView !== 'true') {
+      whereClause.isVisible = true;
+    }
 
     if (category) {
       whereClause.category = {
@@ -119,6 +134,7 @@ export async function POST(req: NextRequest) {
       images,
       isFeatured,
       isPopular,
+      isVisible,
     } = body;
 
     if (!name || !sku || !categoryId || price === undefined) {
@@ -143,6 +159,8 @@ export async function POST(req: NextRequest) {
         deliveryCharges: parseFloat(deliveryCharges || 0),
         isFeatured: Boolean(isFeatured),
         isPopular: Boolean(isPopular),
+        isVisible: isVisible !== undefined ? Boolean(isVisible) : true,
+        is_deleted: 0,
         images: {
           create: (images || []).map((img: string, idx: number) => ({
             url: img,
