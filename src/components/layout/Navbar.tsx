@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
@@ -30,21 +30,44 @@ export function Navbar() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Close User Menu on Outside Click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Toggle Dark / Light Theme
   const toggleTheme = () => {
     if (document.documentElement.classList.contains('dark')) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('railmart_theme', 'light');
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('railmart_theme', 'dark');
+      setIsDarkMode(true);
+    }
+  };
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('railmart_theme');
+    if (savedTheme === 'light') {
       document.documentElement.classList.remove('dark');
       setIsDarkMode(false);
     } else {
       document.documentElement.classList.add('dark');
       setIsDarkMode(true);
     }
-  };
-
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
   }, []);
 
   // Autocomplete search
@@ -86,7 +109,7 @@ export function Navbar() {
             <Train className="w-6 h-6 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="leading-none text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-railway-300">
+            <span className="leading-none text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-railway-600 via-railway-400 to-indigo-500">
               Rail<span className="text-railway-400">Mart</span>
             </span>
             <span className="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Enterprise</span>
@@ -118,7 +141,7 @@ export function Navbar() {
                       key={item.id}
                       href={`/products/${item.slug}`}
                       onClick={() => setSearchQuery('')}
-                      className="p-3 flex items-center gap-3 hover:bg-slate-800/80 transition-colors"
+                      className="p-3 flex items-center gap-3 hover:bg-railway-500/20 hover:text-railway-600 transition-colors"
                     >
                       <div className="w-10 h-10 bg-slate-800 rounded-lg overflow-hidden flex-shrink-0">
                         <img
@@ -128,8 +151,8 @@ export function Navbar() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-white truncate">{item.name}</p>
-                        <p className="text-[11px] text-slate-400">SKU: {item.sku} &bull; ₹{item.price.toLocaleString('en-IN')}</p>
+                        <p className="text-xs font-semibold truncate">{item.name}</p>
+                        <p className="text-[11px] opacity-75">SKU: {item.sku} &bull; ₹{item.price.toLocaleString('en-IN')}</p>
                       </div>
                     </Link>
                   ))}
@@ -159,14 +182,16 @@ export function Navbar() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3">
-          {/* Dark / Light Toggle */}
+          {/* Theme Button Hidden as Requested (Preserved for Future Use) */}
+          {/* 
           <button
             onClick={toggleTheme}
             className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
             title="Toggle Theme"
           >
-            {isDarkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-400" />}
-          </button>
+            {isDarkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-600" />}
+          </button> 
+          */}
 
           {/* Wishlist Icon */}
           <Link
@@ -196,18 +221,18 @@ export function Navbar() {
 
           {/* User Account / Admin Menu */}
           {user ? (
-            <div className="relative">
+            <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 p-1.5 rounded-full hover:bg-slate-800 transition-colors border border-slate-700"
+                className="flex items-center gap-2 p-1.5 rounded-full hover:bg-railway-500/20 transition-colors border border-slate-700"
               >
                 <div className="w-7 h-7 rounded-full bg-railway-600 flex items-center justify-center text-xs font-bold text-white">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
-                <span className="hidden md:inline text-xs font-semibold text-slate-200 max-w-[100px] truncate">
+                <span className="hidden md:inline text-xs font-semibold max-w-[100px] truncate">
                   {user.name.split(' ')[0]}
                 </span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                <ChevronDown className="w-3.5 h-3.5 opacity-70" />
               </button>
 
               {isUserMenuOpen && (
@@ -224,7 +249,7 @@ export function Navbar() {
                     <Link
                       href="/account"
                       onClick={() => setIsUserMenuOpen(false)}
-                      className="px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 flex items-center gap-2 transition-colors"
+                      className="px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-railway-600 hover:text-white flex items-center gap-2 transition-all rounded-md mx-1"
                     >
                       <User className="w-4 h-4 text-railway-400" /> My Orders & Profile
                     </Link>
@@ -234,14 +259,14 @@ export function Navbar() {
                         <Link
                           href="/admin"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="px-4 py-2 text-xs text-amber-300 hover:bg-slate-800 flex items-center gap-2 transition-colors font-semibold"
+                          className="px-4 py-2.5 text-xs font-semibold text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 flex items-center gap-2 transition-all rounded-md mx-1"
                         >
                           <Shield className="w-4 h-4 text-amber-400" /> Admin Dashboard
                         </Link>
                         <Link
                           href="/admin/crm"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="px-4 py-2 text-xs text-emerald-300 hover:bg-slate-800 flex items-center gap-2 transition-colors font-semibold"
+                          className="px-4 py-2.5 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 flex items-center gap-2 transition-all rounded-md mx-1"
                         >
                           <Briefcase className="w-4 h-4 text-emerald-400" /> Enterprise CRM Panel
                         </Link>
@@ -252,7 +277,7 @@ export function Navbar() {
                   <div className="py-1">
                     <button
                       onClick={logout}
-                      className="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-slate-800 flex items-center gap-2 transition-colors"
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 flex items-center gap-2 transition-all rounded-md mx-1"
                     >
                       <LogOut className="w-4 h-4 text-rose-400" /> Sign Out
                     </button>

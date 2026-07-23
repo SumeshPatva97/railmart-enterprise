@@ -48,10 +48,28 @@ export async function PUT(
     const { slug } = await params;
     const body = await req.json();
 
+    // If new images provided, update product images
+    if (body.images && Array.isArray(body.images) && body.images.length > 0) {
+      const existingProduct = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
+      if (existingProduct) {
+        // Remove old images and add new ones
+        await prisma.productImage.deleteMany({ where: { productId: existingProduct.id } });
+        await prisma.productImage.createMany({
+          data: body.images.map((imgUrl: string, idx: number) => ({
+            productId: existingProduct.id,
+            url: imgUrl,
+            alt: body.name || 'Product Image',
+            isPrimary: idx === 0,
+          })),
+        });
+      }
+    }
+
     const product = await prisma.product.update({
       where: { slug },
       data: {
         name: body.name !== undefined ? body.name : undefined,
+        categoryId: body.categoryId !== undefined ? body.categoryId : undefined,
         price: body.price !== undefined ? parseFloat(body.price) : undefined,
         stock: body.stock !== undefined ? parseInt(body.stock) : undefined,
         discount: body.discount !== undefined ? parseFloat(body.discount) : undefined,
@@ -62,6 +80,7 @@ export async function PUT(
         isPopular: body.isPopular !== undefined ? Boolean(body.isPopular) : undefined,
         isVisible: body.isVisible !== undefined ? Boolean(body.isVisible) : undefined,
         is_deleted: body.is_deleted !== undefined ? parseInt(body.is_deleted) : undefined,
+        // SKU is purposefully omitted to prevent modifying unique SKU code on edit
       },
       include: {
         images: true,

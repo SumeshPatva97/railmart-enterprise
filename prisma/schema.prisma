@@ -30,22 +30,27 @@ model User {
   supportTickets SupportTicket[]
   crmNotes       CRMNote[]
   activityLogs   ActivityLog[]
+
+  @@index([role])
+  @@index([createdAt])
 }
 
 model Address {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  label      String   @default("Home")
-  fullName   String
-  phone      String
-  street     String
-  city       String
-  state      String
-  zipCode    String
-  country    String   @default("India")
-  isDefault  Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String   @default("Home")
+  fullName  String
+  phone     String
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  country   String   @default("India")
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Category {
@@ -60,6 +65,8 @@ model Category {
   products    Product[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  @@index([parentId])
 }
 
 model Brand {
@@ -103,6 +110,14 @@ model Product {
   orderItems      OrderItem[]
   wishlists       Wishlist[]
   cartItems       CartItem[]
+
+  @@index([categoryId])
+  @@index([is_deleted, isVisible])
+  @@index([is_deleted, status])
+  @@index([price])
+  @@index([rating])
+  @@index([isFeatured])
+  @@index([createdAt])
 }
 
 model ProductImage {
@@ -112,6 +127,8 @@ model ProductImage {
   url       String
   alt       String?
   isPrimary Boolean  @default(false)
+
+  @@index([productId])
 }
 
 model Review {
@@ -123,6 +140,9 @@ model Review {
   rating    Int
   comment   String
   createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([userId])
 }
 
 model Wishlist {
@@ -134,6 +154,7 @@ model Wishlist {
   createdAt DateTime @default(now())
 
   @@unique([userId, productId])
+  @@index([userId])
 }
 
 model Cart {
@@ -143,6 +164,8 @@ model Cart {
   items     CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+
+  @@index([userId])
 }
 
 model CartItem {
@@ -153,6 +176,9 @@ model CartItem {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
+
+  @@index([cartId])
+  @@index([productId])
 }
 
 model Order {
@@ -178,6 +204,10 @@ model Order {
 
   items           OrderItem[]
   payments        Payment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model OrderItem {
@@ -189,6 +219,9 @@ model OrderItem {
   price     Float
   quantity  Int
   total     Float
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Coupon {
@@ -217,6 +250,8 @@ model Payment {
   status          String
   rawResponse     String?
   createdAt       DateTime @default(now())
+
+  @@index([orderId])
 }
 
 model SupportTicket {
@@ -233,6 +268,9 @@ model SupportTicket {
 
   messages     TicketMessage[]
   crmNotes     CRMNote[]
+
+  @@index([userId])
+  @@index([status])
 }
 
 model TicketMessage {
@@ -244,6 +282,8 @@ model TicketMessage {
   message     String
   attachments String?
   createdAt   DateTime      @default(now())
+
+  @@index([ticketId])
 }
 
 model CRMNote {
@@ -255,6 +295,9 @@ model CRMNote {
   author    String
   note      String
   createdAt DateTime       @default(now())
+
+  @@index([userId])
+  @@index([ticketId])
 }
 
 model Lead {
@@ -269,6 +312,8 @@ model Lead {
   assignedTo  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([status])
 }
 
 model Reminder {
@@ -280,6 +325,8 @@ model Reminder {
   isCompleted Boolean  @default(false)
   assignedTo  String?
   createdAt   DateTime @default(now())
+
+  @@index([isCompleted])
 }
 
 model ActivityLog {
@@ -291,6 +338,9 @@ model ActivityLog {
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
 }
 
 model Blog {
@@ -305,6 +355,8 @@ model Blog {
   status      String    @default("PUBLISHED")
   publishedAt DateTime  @default(now())
   createdAt   DateTime  @default(now())
+
+  @@index([slug])
 }
 
 model Banner {

@@ -88,9 +88,10 @@ export type OrderStatus =
   | 'PACKED'
   | 'SHIPPED'
   | 'DELIVERED'
+  | 'REFUND_REQUESTED'
+  | 'REFUNDED'
   | 'CANCELLED'
-  | 'RETURNED'
-  | 'REFUNDED';
+  | 'RETURNED';
 
 export interface OrderType {
   id: string;

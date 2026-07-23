@@ -1,26 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { formatCurrency } from '@/lib/utils';
-import { ShoppingBag, Trash2, ArrowRight, Tag, ShieldCheck, Plus, Minus, Check } from 'lucide-react';
+import { ShoppingBag, Trash2, ArrowRight, Plus, Minus } from 'lucide-react';
 
 export default function CartPage() {
-  const { cartItems, totals, updateQuantity, removeFromCart, applyCoupon, couponCode } = useCart();
-  const [couponInput, setCouponInput] = useState('');
-  const [couponMsg, setCouponMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  const handleApplyCoupon = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!couponInput) return;
-    const res = await applyCoupon(couponInput);
-    if (res.success) {
-      setCouponMsg({ type: 'success', text: res.message || 'Coupon applied successfully!' });
-    } else {
-      setCouponMsg({ type: 'error', text: res.message || 'Invalid coupon code.' });
-    }
-  };
+  const { cartItems, totals, updateQuantity, removeFromCart } = useCart();
 
   if (cartItems.length === 0) {
     return (
@@ -110,73 +97,30 @@ export default function CartPage() {
             })}
           </div>
 
-          {/* Order Summary & Coupon Card */}
+          {/* Order Summary */}
           <div className="space-y-6">
-            {/* Coupon Box */}
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Tag className="w-4 h-4 text-railway-400" /> Apply Corporate Coupon
-              </h3>
-              <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="e.g. RAIL10 or TATKAL5000"
-                  value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 uppercase font-mono"
-                />
-                <button
-                  type="submit"
-                  className="bg-railway-600 hover:bg-railway-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors"
-                >
-                  Apply
-                </button>
-              </form>
-
-              {couponMsg && (
-                <p className={`text-xs font-semibold ${couponMsg.type === 'success' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {couponMsg.text}
-                </p>
-              )}
-
-              {couponCode && (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs p-2 rounded-lg flex items-center justify-between font-semibold">
-                  <span>Coupon {couponCode} Active</span>
-                  <Check className="w-4 h-4" />
-                </div>
-              )}
-            </div>
-
-            {/* Order Totals Summary */}
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-              <h3 className="text-sm font-bold text-white border-b border-slate-800 pb-3">Order Summary</h3>
+              <h3 className="text-base font-bold text-white border-b border-slate-800 pb-3">Order Summary</h3>
 
               <div className="space-y-2 text-xs text-slate-300">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span className="font-semibold text-white">{formatCurrency(totals.subtotal)}</span>
+                <div className="flex justify-between py-1">
+                  <span className="text-slate-400">Subtotal:</span>
+                  <span className="font-bold text-white">{formatCurrency(totals.subtotal)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Estimated GST (18% Input Credit):</span>
-                  <span className="font-semibold text-white">+{formatCurrency(totals.taxAmount)}</span>
+                <div className="flex justify-between py-1">
+                  <span className="text-slate-400">Estimated GST (18% Input Credit):</span>
+                  <span className="font-bold text-white">+{formatCurrency(totals.taxAmount)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Insured Freight Delivery Fee:</span>
-                  <span className="font-semibold text-white">
+                <div className="flex justify-between py-1">
+                  <span className="text-slate-400">Insured Freight Delivery Fee:</span>
+                  <span className="font-bold text-white">
                     {totals.shippingFee === 0 ? 'FREE' : formatCurrency(totals.shippingFee)}
                   </span>
                 </div>
 
-                {totals.discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-400 font-semibold">
-                    <span>Coupon Discount:</span>
-                    <span>-{formatCurrency(totals.discountAmount)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between pt-3 border-t border-slate-800 text-sm font-extrabold text-white">
+                <div className="flex justify-between pt-3 border-t border-slate-800 text-sm font-black text-white">
                   <span>Grand Total:</span>
-                  <span className="text-railway-400">{formatCurrency(totals.totalAmount)}</span>
+                  <span className="text-railway-400 text-base">{formatCurrency(totals.totalAmount)}</span>
                 </div>
               </div>
 
