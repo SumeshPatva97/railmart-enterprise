@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { formatDate } from '@/lib/utils';
 import {
   Briefcase,
   UserCheck,
@@ -11,9 +10,6 @@ import {
   Download,
   Plus,
   MessageSquare,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
   FileSpreadsheet,
 } from 'lucide-react';
 
@@ -126,21 +122,21 @@ export default function EnterpriseCRMPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-10">
+    <div className="min-h-screen bg-slate-950 text-slate-100 py-6 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* CRM Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 pb-6 border-b border-slate-800 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-slate-800 gap-4">
           <div>
             <div className="flex items-center gap-2">
               <Briefcase className="w-6 h-6 text-emerald-400" />
-              <h1 className="text-3xl font-extrabold text-white">Enterprise CRM & Support Hub</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Enterprise CRM & Support Hub</h1>
             </div>
             <p className="text-slate-400 text-xs mt-1">Lead pipeline, customer 360 desk, internal staff notes, and CSV reports exporter.</p>
           </div>
         </div>
 
-        {/* Tabs Navigation */}
-        <div className="flex items-center gap-2 border-b border-slate-800 mb-8 overflow-x-auto pb-2">
+        {/* Tabs Navigation (Responsive scrollable) */}
+        <div className="flex items-center gap-2 border-b border-slate-800 mb-8 overflow-x-auto pb-2 scrollbar-none whitespace-nowrap">
           <button
             onClick={() => setActiveTab('leads')}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
@@ -178,18 +174,18 @@ export default function EnterpriseCRMPage() {
         {/* Tab 1: Lead Pipeline */}
         {activeTab === 'leads' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <h3 className="text-sm font-bold text-white">Railway Contractor Leads & Inquiries</h3>
               <button
                 onClick={() => setShowAddLead(true)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 w-full sm:w-auto justify-center"
               >
                 <Plus className="w-4 h-4" /> Capture New Lead
               </button>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-              <table className="w-full text-left text-xs text-slate-300">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto w-full shadow-xl">
+              <table className="w-full text-left text-xs text-slate-300 min-w-[640px]">
                 <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
                   <tr>
                     <th className="p-4">Contractor / Lead</th>
@@ -237,10 +233,10 @@ export default function EnterpriseCRMPage() {
 
             <div className="space-y-4">
               {tickets.map((tkt) => (
-                <div key={tkt.id} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3">
-                  <div className="flex items-center justify-between">
+                <div key={tkt.id} className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl space-y-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div>
-                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-white flex flex-wrap items-center gap-2">
                         <span>{tkt.ticketNumber}: {tkt.subject}</span>
                         <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-amber-500/20 text-amber-400">
                           {tkt.status}
@@ -251,7 +247,7 @@ export default function EnterpriseCRMPage() {
 
                     <button
                       onClick={() => setActiveTicket(tkt)}
-                      className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5"
+                      className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 w-full sm:w-auto justify-center"
                     >
                       <MessageSquare className="w-3.5 h-3.5 text-emerald-400" /> Staff Reply
                     </button>
@@ -280,7 +276,7 @@ export default function EnterpriseCRMPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
               <h4 className="text-sm font-bold text-white">Orders & Revenue CSV</h4>
-              <p className="text-xs text-slate-400">Export complete order list with GST tax amounts, payment status, and customer details.</p>
+              <p className="text-xs text-slate-400">Export complete order list with tax amounts, payment status, and customer details.</p>
               <a
                 href="/api/crm/export?type=orders"
                 className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl inline-flex items-center gap-2"
@@ -302,7 +298,7 @@ export default function EnterpriseCRMPage() {
 
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
               <h4 className="text-sm font-bold text-white">Product Inventory CSV</h4>
-              <p className="text-xs text-slate-400">Export current product catalog, stock counts, SKUs, and GST percentages.</p>
+              <p className="text-xs text-slate-400">Export current product catalog, stock counts, SKUs, and categories.</p>
               <a
                 href="/api/crm/export?type=products"
                 className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl inline-flex items-center gap-2"
@@ -330,7 +326,7 @@ export default function EnterpriseCRMPage() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="text-slate-400 block mb-1">Email</label>
                   <input

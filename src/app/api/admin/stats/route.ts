@@ -9,10 +9,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized Admin access required.' }, { status: 403 });
     }
 
-    const [totalUsers, totalOrders, pendingOrdersCount, revenueResult, bestSellers, recentOrders] =
+    const [totalUsers, totalOrders, totalProducts, totalLogs, pendingOrdersCount, revenueResult, bestSellers, recentOrders] =
       await Promise.all([
         prisma.user.count(),
         prisma.order.count(),
+        prisma.product.count({ where: { is_deleted: 0 } }),
+        prisma.activityLog.count(),
         prisma.order.count({ where: { status: 'PENDING' } }),
         prisma.order.aggregate({
           _sum: { totalAmount: true },
@@ -36,14 +38,14 @@ export async function GET(req: NextRequest) {
     const totalRevenue = revenueResult._sum.totalAmount || 0;
 
     // Fetch product details for best sellers
-    const bestSellerIds = bestSellers.map((b) => b.productId);
+    const bestSellerIds = bestSellers.map((b: any) => b.productId);
     const productsMap = await prisma.product.findMany({
       where: { id: { in: bestSellerIds } },
       select: { id: true, name: true, price: true, sku: true },
     });
 
-    const bestSellingProducts = bestSellers.map((item) => {
-      const prod = productsMap.find((p) => p.id === item.productId);
+    const bestSellingProducts = bestSellers.map((item: any) => {
+      const prod = productsMap.find((p: any) => p.id === item.productId);
       return {
         id: item.productId,
         name: prod?.name || 'Railway Tool',
@@ -56,6 +58,8 @@ export async function GET(req: NextRequest) {
       stats: {
         totalUsers,
         totalOrders,
+        totalProducts,
+        totalLogs: totalLogs || 1,
         totalRevenue,
         pendingOrders: pendingOrdersCount,
         monthlySales: Math.round(totalRevenue * 0.4),

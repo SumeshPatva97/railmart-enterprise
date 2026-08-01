@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { ProductType, CategoryType } from '@/types';
 import { formatCurrency } from '@/lib/utils';
-import { Search, Filter, Star, ShoppingCart, Heart, SlidersHorizontal, Check } from 'lucide-react';
+import { Search, Star, ShoppingCart, Heart, SlidersHorizontal, Check, ChevronDown } from 'lucide-react';
 
 function ProductsCatalogContent() {
   const searchParams = useSearchParams();
@@ -16,6 +16,9 @@ function ProductsCatalogContent() {
   const [products, setProducts] = useState<ProductType[]>([]);
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Mobile Filter Drawer Toggle
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
 
   // Filters state
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
@@ -27,6 +30,16 @@ function ProductsCatalogContent() {
 
   const { addToCart, toggleWishlist, isWishlisted } = useCart();
   const [addedId, setAddedId] = useState<string | null>(null);
+
+  // Sync selectedCategory & searchQuery state with URL searchParams dynamically when Navbar/URL changes
+  useEffect(() => {
+    const catFromUrl = searchParams.get('category') || '';
+    const searchFromUrl = searchParams.get('search') || '';
+    setSelectedCategory(catFromUrl);
+    if (searchFromUrl) {
+      setSearchQuery(searchFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -70,6 +83,20 @@ function ProductsCatalogContent() {
     fetchProducts();
   }, [selectedCategory, searchQuery, sortOption, minPrice, maxPrice, minRating]);
 
+  // Handler to select category and sync browser URL bar
+  const handleCategorySelect = (catSlug: string) => {
+    setSelectedCategory(catSlug);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (catSlug) {
+        url.searchParams.set('category', catSlug);
+      } else {
+        url.searchParams.delete('category');
+      }
+      window.history.pushState(null, '', url.toString());
+    }
+  };
+
   const handleAddToCart = async (product: ProductType) => {
     await addToCart(product, 1);
     setAddedId(product.id);
@@ -77,19 +104,39 @@ function ProductsCatalogContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-10">
+    <div className="min-h-screen bg-slate-950 text-slate-100 py-6 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Title */}
-        <div className="mb-8 border-b border-slate-800 pb-6">
-          <h1 className="text-3xl font-extrabold text-white">Railway Spares & Equipment Catalog</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Browse RDSO certified track maintenance benders, signaling lamps, pantographs, and safety tools.
+        <div className="mb-6 sm:mb-8 border-b border-slate-800 pb-4 sm:pb-6">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Tatkal Booking Software & Extensions Catalog</h1>
+          <p className="text-slate-400 text-xs sm:text-sm mt-1">
+            Browse all 12 High-Speed IRCTC Tatkal Softwares: GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Mobile Filter Toggle Button */}
+        <div className="lg:hidden mb-4">
+          <button
+            onClick={() => setShowMobileFilter(!showMobileFilter)}
+            className="w-full bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between text-xs font-bold text-white shadow-md"
+          >
+            <span className="flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-railway-400" /> Filter Inventory
+              {selectedCategory && (
+                <span className="bg-railway-600 text-white px-2 py-0.5 rounded-full text-[10px]">
+                  1 Active Filter
+                </span>
+              )}
+            </span>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showMobileFilter ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Filter Sidebar */}
-          <div className="lg:col-span-1 bg-slate-900 border border-slate-800 p-6 rounded-2xl h-fit space-y-6">
+          <div className={`lg:col-span-1 bg-slate-900 border border-slate-800 p-6 rounded-2xl h-fit space-y-6 ${
+            showMobileFilter ? 'block' : 'hidden lg:block'
+          }`}>
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4 text-railway-400" /> Filter Inventory
@@ -97,7 +144,7 @@ function ProductsCatalogContent() {
               {(selectedCategory || searchQuery || minPrice || maxPrice || minRating) && (
                 <button
                   onClick={() => {
-                    setSelectedCategory('');
+                    handleCategorySelect('');
                     setSearchQuery('');
                     setMinPrice('');
                     setMaxPrice('');
@@ -115,7 +162,7 @@ function ProductsCatalogContent() {
               <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">Category</label>
               <div className="space-y-1.5 text-xs">
                 <button
-                  onClick={() => setSelectedCategory('')}
+                  onClick={() => handleCategorySelect('')}
                   className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                     !selectedCategory ? 'bg-railway-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800'
                   }`}
@@ -125,7 +172,7 @@ function ProductsCatalogContent() {
                 {categories.map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => setSelectedCategory(cat.slug)}
+                    onClick={() => handleCategorySelect(cat.slug)}
                     className={`w-full text-left px-3 py-2 rounded-lg transition-colors truncate ${
                       selectedCategory === cat.slug
                         ? 'bg-railway-600 text-white font-bold'
@@ -194,7 +241,7 @@ function ProductsCatalogContent() {
                 <select
                   value={sortOption}
                   onChange={(e) => setSortOption(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 text-xs text-white px-3 py-1.5 rounded-lg focus:outline-none"
+                  className="bg-slate-950 border border-slate-800 text-xs text-white px-3 py-1.5 rounded-lg focus:outline-none w-full sm:w-auto"
                 >
                   <option value="newest">Newest Arrivals</option>
                   <option value="price-low">Price: Low to High</option>
@@ -224,7 +271,7 @@ function ProductsCatalogContent() {
                       key={product.id}
                       className="group rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between overflow-hidden shadow-lg"
                     >
-                      <div className="relative h-52 bg-slate-950 overflow-hidden">
+                      <div className="relative h-48 sm:h-52 bg-slate-950 overflow-hidden">
                         <img
                           src={mainImg}
                           alt={product.name}
@@ -237,9 +284,6 @@ function ProductsCatalogContent() {
                               {product.discount}% OFF
                             </span>
                           )}
-                          <span className="bg-railway-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                            {product.gstPercent}% GST
-                          </span>
                         </div>
 
                         <button
@@ -254,7 +298,7 @@ function ProductsCatalogContent() {
                         </button>
                       </div>
 
-                      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
                         <div>
                           <div className="flex items-center gap-1 text-amber-400 text-xs font-semibold mb-1">
                             <Star className="w-3.5 h-3.5 fill-current" />
@@ -305,8 +349,8 @@ function ProductsCatalogContent() {
                 })}
               </div>
             ) : (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-                <p className="text-slate-400 text-sm">No railway equipment found matching your filter criteria.</p>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-12 text-center">
+                <p className="text-slate-400 text-sm">No software found matching your filter criteria.</p>
               </div>
             )}
           </div>

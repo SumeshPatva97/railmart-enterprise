@@ -35,7 +35,7 @@ export function slugify(text: string): string {
 
 export interface CartCalculation {
   subtotal: number;
-  taxAmount: number; // GST
+  taxAmount: number; // GST (0 - Removed)
   shippingFee: number;
   discountAmount: number;
   totalAmount: number;
@@ -46,15 +46,11 @@ export function calculateCartTotals(
   couponDiscount: { type: 'PERCENTAGE' | 'FIXED'; value: number; maxDiscount?: number } | null = null
 ): CartCalculation {
   let subtotal = 0;
-  let totalGst = 0;
   let maxDeliveryFee = 0;
 
   items.forEach((item) => {
     const itemSubtotal = item.price * item.quantity;
     subtotal += itemSubtotal;
-
-    const gstRate = (item.gstPercent ?? 18) / 100;
-    totalGst += itemSubtotal * gstRate;
 
     if ((item.deliveryCharges ?? 0) > maxDeliveryFee) {
       maxDeliveryFee = item.deliveryCharges ?? 0;
@@ -79,11 +75,12 @@ export function calculateCartTotals(
     discountAmount = subtotal;
   }
 
-  const totalAmount = Math.max(0, subtotal + totalGst + shippingFee - discountAmount);
+  // GST Removed - Total = Subtotal + Shipping - Discount
+  const totalAmount = Math.max(0, subtotal + shippingFee - discountAmount);
 
   return {
     subtotal: Math.round(subtotal * 100) / 100,
-    taxAmount: Math.round(totalGst * 100) / 100,
+    taxAmount: 0,
     shippingFee: Math.round(shippingFee * 100) / 100,
     discountAmount: Math.round(discountAmount * 100) / 100,
     totalAmount: Math.round(totalAmount * 100) / 100,

@@ -60,7 +60,7 @@ export default function CartPage() {
                       </Link>
                       <p className="text-[11px] text-slate-400 mt-0.5">SKU: {prod.sku}</p>
                       <p className="text-xs text-railway-400 font-bold mt-1">
-                        {formatCurrency(unitPrice)} <span className="text-[10px] text-slate-500">(+18% GST)</span>
+                        {formatCurrency(unitPrice)}
                       </p>
                     </div>
                   </div>
@@ -106,10 +106,6 @@ export default function CartPage() {
                 <div className="flex justify-between py-1">
                   <span className="text-slate-400">Subtotal:</span>
                   <span className="font-bold text-white">{formatCurrency(totals.subtotal)}</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-slate-400">Estimated GST (18% Input Credit):</span>
-                  <span className="font-bold text-white">+{formatCurrency(totals.taxAmount)}</span>
                 </div>
                 <div className="flex justify-between py-1">
                   <span className="text-slate-400">Insured Freight Delivery Fee:</span>

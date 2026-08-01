@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Train, Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,6 +36,9 @@ export default function LoginPage() {
         ? { email: 'admin@railmart.com', password: 'Admin@123456' }
         : { email: 'customer@railmart.com', password: 'Customer@123456' };
 
+    setEmail(demoCreds.email);
+    setPassword(demoCreds.password);
+
     const res = await login(demoCreds);
     if (res.success) {
       if (type === 'admin') router.push('/admin');
@@ -50,11 +53,11 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-railway-600 flex items-center justify-center text-white mx-auto shadow-lg shadow-railway-600/30">
-            <Train className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-black text-xl mx-auto shadow-lg shadow-amber-500/10">
+            D
           </div>
-          <h1 className="text-2xl font-extrabold text-white">Sign In to RailMart</h1>
-          <p className="text-xs text-slate-400">Access your railway procurement account and order history.</p>
+          <h1 className="text-2xl font-extrabold text-white">Sign In to Enterprise D Team</h1>
+          <p className="text-xs text-slate-400">Official Tatkal Software Portal (denterpriese.softvps.in)</p>
         </div>
 
         {/* Demo Accounts Bar */}
@@ -87,10 +90,10 @@ export default function LoginPage() {
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="email"
-                placeholder="admin@railmart.com"
+                placeholder="Enter your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-slate-500"
                 required
               />
             </div>
@@ -102,10 +105,10 @@ export default function LoginPage() {
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="password"
-                placeholder="••••••••"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-slate-500"
                 required
               />
             </div>
@@ -114,7 +117,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-railway-600 hover:bg-railway-500 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-xl shadow-railway-600/30 flex items-center justify-center gap-2"
+            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2"
           >
             {loading ? 'Authenticating...' : 'Sign In'}
             <ArrowRight className="w-4 h-4" />

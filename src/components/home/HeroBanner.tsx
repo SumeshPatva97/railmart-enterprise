@@ -20,83 +20,104 @@ export function HeroBanner() {
           transition={{ duration: 0.6 }}
           className="space-y-6 text-left"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-railway-500/10 border border-railway-500/20 text-railway-400 text-xs font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
             <Zap className="w-3.5 h-3.5 text-amber-400" />
-            <span>RDSO Certified Railway Equipment Marketplace</span>
+            <span>Official Tatkal Software Portal (denterpriese.softvps.in)</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
-            Next-Gen Railway <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-railway-400 via-blue-400 to-indigo-300">
-              Spares & Equipment
+            ENTERPRISE <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-200">
+              D TEAM BY BHIMDADA
             </span>
           </h1>
 
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl">
-            Streamlined procurement for railway contractors and workshop engineers. Heavy hydraulic rail benders, 110V LED signals, 25kV pantographs, and 1000V insulated safety tool kits with instant GST tax credit.
+            12 High-Speed IRCTC Tatkal Software & Browser Extensions including GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <Link
               href="/products"
-              className="bg-railway-600 hover:bg-railway-500 text-white text-sm font-bold px-7 py-3.5 rounded-xl transition-all shadow-xl shadow-railway-600/30 flex items-center gap-2 group"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl transition-all shadow-xl shadow-amber-500/20 flex items-center gap-2 group"
             >
-              <span>Explore Products Catalog</span>
+              <span>Explore 12 Tatkal Softwares</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
 
-            <Link
-              href="/account?tab=tickets"
-              className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-sm font-semibold px-6 py-3.5 rounded-xl transition-colors"
+            <a
+              href="https://whatsapp.com/channel/0029Vb8ikne7Noa8Auu2yp0T"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 text-sm font-semibold px-6 py-3.5 rounded-xl transition-colors flex items-center gap-2"
             >
-              Request Bulk Quotation
-            </Link>
+              Join WhatsApp Channel
+            </a>
           </div>
 
-          {/* Stats Bar */}
-          <div className="grid grid-cols-3 gap-6 pt-8 border-t border-slate-900 text-slate-400 text-xs">
-            <div>
-              <div className="text-2xl font-black text-white">10,000+</div>
-              <p className="mt-0.5">Track Miles Equipped</p>
+          {/* Message from Super Master Bhimdada */}
+          <div className="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 text-xs text-slate-300 space-y-2">
+            <div className="font-bold text-amber-400 text-sm flex items-center justify-between">
+              <span>📢 MESSAGE FROM SUPER MASTER BHIMDADA :-</span>
+              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">7:30 AM - 12:00 AM Online Support</span>
             </div>
-            <div>
-              <div className="text-2xl font-black text-white">100%</div>
-              <p className="mt-0.5">RDSO Compliant</p>
-            </div>
-            <div>
-              <div className="text-2xl font-black text-white">24-Hr</div>
-              <p className="mt-0.5">Fast Dispatch</p>
-            </div>
+            <p className="text-slate-400 text-[11px] leading-relaxed">
+              Software, VPS, IP, IRCTC ID aur anya related services available hain. Fast support ke liye contact team: <strong className="text-white">+66805849689</strong>
+            </p>
           </div>
         </motion.div>
 
-        {/* Right Glassmorphism Visual Showcase */}
+        {/* Right Visual Showcase */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="relative"
         >
-          <div className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-xl shadow-2xl">
-            <img
-              src="https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=1200&q=80"
-              alt="Railway Freight & Equipment"
-              className="w-full h-80 sm:h-96 object-cover rounded-2xl"
-            />
-            {/* Floating Glassmorphism Badge */}
-            <div className="absolute bottom-8 left-8 right-8 bg-slate-950/80 border border-slate-800/80 backdrop-blur-md rounded-2xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-railway-500/20 text-railway-400 flex items-center justify-center">
-                  <Train className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">Featured Equipment</h4>
-                  <p className="text-[11px] text-slate-400">100-Ton Hydraulic Rail Bender</p>
-                </div>
+          <div className="relative rounded-3xl overflow-hidden border border-amber-500/30 bg-slate-900/80 p-6 backdrop-blur-xl shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-rose-500" />
+                <div className="w-3 h-3 rounded-full bg-amber-500" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-xs font-mono text-slate-400 ml-2">denterpriese.softvps.in</span>
               </div>
-              <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                In Stock & Certified
+              <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                12 Products Live
               </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-left">
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">1) GADAR</span>
+                <span className="text-sm font-black text-amber-400">₹1,199/-</span>
+                <span className="text-[10px] text-emerald-400 block">Multi PNR Support</span>
+              </div>
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">2) STAR_TS</span>
+                <span className="text-sm font-black text-amber-400">₹1,149/-</span>
+                <span className="text-[10px] text-emerald-400 block">Smart Automation</span>
+              </div>
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">3) PRO MAX</span>
+                <span className="text-sm font-black text-amber-400">₹1,499/-</span>
+                <span className="text-[10px] text-emerald-400 block">High-Speed Engine</span>
+              </div>
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">4) HITMAN</span>
+                <span className="text-sm font-black text-amber-400">₹1,399/-</span>
+                <span className="text-[10px] text-emerald-400 block">Smart Assistant</span>
+              </div>
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">5) SUPERMAN</span>
+                <span className="text-sm font-black text-amber-400">₹1,599/-</span>
+                <span className="text-[10px] text-emerald-400 block">Workflow Master</span>
+              </div>
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">6) BTS (Black Turbo)</span>
+                <span className="text-sm font-black text-amber-400">₹1,599/-</span>
+                <span className="text-[10px] text-rose-400 block">10% Wallet Cashback</span>
+              </div>
             </div>
           </div>
         </motion.div>

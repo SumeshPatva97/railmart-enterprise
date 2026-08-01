@@ -69,6 +69,7 @@ export async function PUT(
       where: { slug },
       data: {
         name: body.name !== undefined ? body.name : undefined,
+        alternateName: body.alternateName !== undefined ? body.alternateName : undefined,
         categoryId: body.categoryId !== undefined ? body.categoryId : undefined,
         price: body.price !== undefined ? parseFloat(body.price) : undefined,
         stock: body.stock !== undefined ? parseInt(body.stock) : undefined,

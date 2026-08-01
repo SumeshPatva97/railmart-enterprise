@@ -6,36 +6,20 @@ import { ArrowRight, Wrench, Radio, Zap, Shield } from 'lucide-react';
 
 const categories = [
   {
-    title: 'Track Maintenance Tools',
-    slug: 'track-maintenance-equipment',
-    desc: 'Hydraulic rail benders, sleepers maintenance, and track alignment jacks.',
+    title: 'Tatkal Booking Software',
+    slug: 'tatkal-booking-software',
+    desc: 'High-speed automated IRCTC Tatkal ticket booking software & desktop automation tools.',
     icon: Wrench,
-    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
-    count: '24+ Items',
+    image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80',
+    count: '11 Softwares',
   },
   {
-    title: 'Signaling & Interlocking',
-    slug: 'signaling-and-interlocking',
-    desc: 'Fail-safe 110V LED aspect signal lamp units, point machines, and track relays.',
-    icon: Radio,
-    image: 'https://images.unsplash.com/photo-1515165562839-978bbcf18277?auto=format&fit=crop&w=600&q=80',
-    count: '18+ Items',
-  },
-  {
-    title: 'Locomotive Electrical Spares',
-    slug: 'locomotive-electrical-spares',
-    desc: '25kV pantographs, vacuum circuit breakers, and traction motor components.',
+    title: 'Tatkal Browser Extensions',
+    slug: 'tatkal-browser-extensions',
+    desc: 'Lightweight browser-based Tatkal booking extension with simple setup & instant response.',
     icon: Zap,
-    image: 'https://images.unsplash.com/photo-1532105956626-9569c03602f6?auto=format&fit=crop&w=600&q=80',
-    count: '32+ Items',
-  },
-  {
-    title: '1000V Insulated Safety Gear',
-    slug: 'safety-and-trackside-tools',
-    desc: 'VDE certified safety tool kits, LED warning beacons, and inspector helmets.',
-    icon: Shield,
-    image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80',
-    count: '15+ Items',
+    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80',
+    count: '1 Extension',
   },
 ];
 
@@ -45,8 +29,8 @@ export function CategoryShowcase() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div>
-            <span className="text-xs font-bold text-railway-400 tracking-wider uppercase">Procurement Categories</span>
-            <h2 className="text-3xl font-extrabold text-white mt-1">Certified Railway Equipment Divisions</h2>
+            <span className="text-xs font-bold text-amber-400 tracking-wider uppercase">Enterprise D Team Categories</span>
+            <h2 className="text-3xl font-extrabold text-white mt-1">High-Speed Tatkal Solutions</h2>
           </div>
           <Link
             href="/products"

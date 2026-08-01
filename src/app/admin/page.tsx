@@ -31,6 +31,10 @@ import {
   Filter,
   Loader2,
   ShieldCheck,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpDown,
 } from 'lucide-react';
 
 function TableSkeleton({ rows = 5, cols = 6 }: { rows?: number; cols?: number }) {
@@ -96,9 +100,13 @@ export default function AdminDashboardPage() {
   // Product Add / Edit Modal State
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProductSlug, setEditingProductSlug] = useState<string | null>(null);
+  const [draggedRowIndex, setDraggedRowIndex] = useState<number | null>(null);
+  const [dragOverRowIndex, setDragOverRowIndex] = useState<number | null>(null);
+  const [togglingVisibilitySlug, setTogglingVisibilitySlug] = useState<string | null>(null);
 
   const [newProd, setNewProd] = useState({
     name: '',
+    alternateName: '',
     sku: '',
     categoryId: '',
     price: '',
@@ -124,6 +132,11 @@ export default function AdminDashboardPage() {
 
   const [categories, setCategories] = useState<any[]>([]);
 
+  // Product Reordering State (Matching Video UI)
+  const [savedActiveOrder, setSavedActiveOrder] = useState<any[]>([]);
+  const [hasReorderChanges, setHasReorderChanges] = useState(false);
+  const [isSavingReorder, setIsSavingReorder] = useState(false);
+
   // Granular Section Fetchers
   const fetchProductsList = async () => {
     setLoadingProducts(true);
@@ -131,13 +144,108 @@ export default function AdminDashboardPage() {
       const res = await fetch('/api/products?includeDeleted=true&adminView=true&limit=100');
       if (res.ok) {
         const data = await res.json();
-        setProducts(data.products || []);
+        const prods = data.products || [];
+        setProducts(prods);
+        const activeProds = prods.filter((p: any) => p.is_deleted === 0 || !p.is_deleted);
+        setSavedActiveOrder(activeProds);
+        setHasReorderChanges(false);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingProducts(false);
     }
+  };
+
+  // Handle Drag Reorder (Instant fluid UI update, triggers blue "Reordering" top bar)
+  const handleReorderProducts = (fromIdx: number, toIdx: number) => {
+    const activeProds = products.filter((p) => p.is_deleted === 0 || !p.is_deleted);
+    if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || toIdx >= activeProds.length) return;
+
+    const newActive = [...activeProds];
+    const [movedItem] = newActive.splice(fromIdx, 1);
+    newActive.splice(toIdx, 0, movedItem);
+
+    // Re-assign 2-digit alternateName (01, 02, 03... 12)
+    const updatedActive = newActive.map((p, idx) => ({
+      ...p,
+      alternateName: String(idx + 1).padStart(2, '0'),
+    }));
+
+    // Update local state immediately
+    setProducts((prev) => {
+      const deletedProds = prev.filter((p) => p.is_deleted === 1);
+      return [...updatedActive, ...deletedProds];
+    });
+
+    setHasReorderChanges(true);
+  };
+
+  // Save new reorder to backend database ("Save order" button)
+  const handleSaveReorderChanges = async () => {
+    if (isSavingReorder) return;
+    setIsSavingReorder(true);
+
+    const activeProds = products.filter((p) => p.is_deleted === 0 || !p.is_deleted);
+
+    try {
+      const res = await fetch('/api/admin/products/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: activeProds.map((item) => ({ id: item.id, alternateName: item.alternateName })),
+        }),
+      });
+
+      if (res.ok) {
+        setSavedActiveOrder([...activeProds]);
+        setHasReorderChanges(false);
+        fetchAuditLogs();
+        setAdminAlert({ type: 'success', message: 'Product display order saved successfully!' });
+        setTimeout(() => setAdminAlert(null), 4000);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to save product order.');
+      }
+    } catch (err) {
+      console.error('Save reorder error:', err);
+    } finally {
+      setIsSavingReorder(false);
+    }
+  };
+
+  // Reset current drag changes back to last saved order ("Reset" button)
+  const handleResetReorderChanges = () => {
+    setProducts((prev) => {
+      const deletedProds = prev.filter((p) => p.is_deleted === 1);
+      return [...savedActiveOrder, ...deletedProds];
+    });
+    setHasReorderChanges(false);
+  };
+
+  // Reset all active product positions back to default numerical SKU order (01, 02... 12)
+  const handleResetSortOrder = () => {
+    const activeProds = products.filter((p) => p.is_deleted === 0 || !p.is_deleted);
+
+    const sortedByDefault = [...activeProds].sort((a, b) => {
+      const matchA = a.sku.match(/(\d{2})$/);
+      const matchB = b.sku.match(/(\d{2})$/);
+      const numA = matchA ? parseInt(matchA[1]) : 99;
+      const numB = matchB ? parseInt(matchB[1]) : 99;
+      return numA - numB;
+    });
+
+    const resetActive = sortedByDefault.map((p, idx) => ({
+      ...p,
+      alternateName: String(idx + 1).padStart(2, '0'),
+    }));
+
+    setProducts((prev) => {
+      const deletedProds = prev.filter((p) => p.is_deleted === 1);
+      return [...resetActive, ...deletedProds];
+    });
+
+    setHasReorderChanges(true);
   };
 
   const fetchUsersList = async () => {
@@ -182,8 +290,30 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Helper to switch active tab and sync URL query parameter e.g. /admin?tab=products
+  const handleTabChange = (newTab: 'overview' | 'products' | 'users' | 'logs') => {
+    setActiveTab(newTab);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', newTab);
+      window.history.replaceState(null, '', url.toString());
+    }
+  };
+
+  // Sync tab state from URL on initial load / reload
   useEffect(() => {
-    async function loadAdminData() {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabFromUrl = params.get('tab');
+      if (tabFromUrl === 'products' || tabFromUrl === 'users' || tabFromUrl === 'logs' || tabFromUrl === 'overview') {
+        setActiveTab(tabFromUrl);
+      }
+    }
+  }, []);
+
+  // Fetch global stats and categories once for header cards
+  useEffect(() => {
+    async function loadAdminHeaderData() {
       if (!user || user.role !== 'ADMIN') return;
       setLoadingStats(true);
       try {
@@ -199,15 +329,24 @@ export default function AdminDashboardPage() {
       } finally {
         setLoadingStats(false);
       }
-
-      // Fetch tab sections in background
-      fetchOrdersList();
-      fetchProductsList();
-      fetchUsersList();
-      fetchAuditLogs();
     }
-    loadAdminData();
+    loadAdminHeaderData();
   }, [user]);
+
+  // ON-DEMAND LAZY API FETCHING: Only fetch the API for the ACTIVE tab when opened!
+  useEffect(() => {
+    if (!user || user.role !== 'ADMIN') return;
+
+    if (activeTab === 'overview') {
+      if (orders.length === 0) fetchOrdersList();
+    } else if (activeTab === 'products') {
+      if (products.length === 0) fetchProductsList();
+    } else if (activeTab === 'users') {
+      if (usersList.length === 0) fetchUsersList();
+    } else if (activeTab === 'logs') {
+      if (auditLogs.length === 0) fetchAuditLogs();
+    }
+  }, [activeTab, user]);
 
   const handleUpdateOrderStatus = async (orderId: string, status: string, paymentStatus?: string) => {
     if (processingOrderId === orderId) return;
@@ -291,6 +430,8 @@ export default function AdminDashboardPage() {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+
+
   // Open Edit Product Modal
   const openEditModal = (p: any) => {
     let featText = '';
@@ -303,6 +444,7 @@ export default function AdminDashboardPage() {
     setEditingProductSlug(p.slug);
     setNewProd({
       name: p.name,
+      alternateName: p.alternateName || '',
       sku: p.sku,
       categoryId: p.categoryId || '',
       price: String(p.price),
@@ -341,6 +483,7 @@ export default function AdminDashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newProd.name,
+          alternateName: newProd.alternateName,
           sku: newProd.sku,
           categoryId: newProd.categoryId,
           price: newProd.price,
@@ -359,6 +502,7 @@ export default function AdminDashboardPage() {
         setEditingProductSlug(null);
         setNewProd({
           name: '',
+          alternateName: '',
           sku: '',
           categoryId: '',
           price: '',
@@ -384,6 +528,7 @@ export default function AdminDashboardPage() {
 
   // Toggle Visibility in Catalog
   const handleToggleVisibility = async (slug: string, currentVisibility: boolean) => {
+    setTogglingVisibilitySlug(slug);
     try {
       const res = await fetch(`/api/products/${slug}`, {
         method: 'PUT',
@@ -398,6 +543,8 @@ export default function AdminDashboardPage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setTogglingVisibilitySlug(null);
     }
   };
 
@@ -604,54 +751,42 @@ export default function AdminDashboardPage() {
           )
         )}
 
-        {/* Admin Section Tabs */}
+        {/* Admin Section Tabs with URL sync */}
         <div className="flex items-center gap-2 border-b border-slate-800 mb-8 overflow-x-auto pb-2">
           <button
-            onClick={() => {
-              setActiveTab('overview');
-              if (orders.length === 0) fetchOrdersList();
-            }}
+            onClick={() => handleTabChange('overview')}
             className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all ${
-              activeTab === 'overview' ? 'bg-railway-600 text-white' : 'text-slate-400 hover:text-white'
+              activeTab === 'overview' ? 'bg-railway-600 text-white shadow' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Order Fulfillment Desk ({orders.length})
+            Order Fulfillment Desk ({stats?.totalOrders ?? orders.length})
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab('products');
-              if (products.length === 0) fetchProductsList();
-            }}
+            onClick={() => handleTabChange('products')}
             className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all ${
-              activeTab === 'products' ? 'bg-railway-600 text-white' : 'text-slate-400 hover:text-white'
+              activeTab === 'products' ? 'bg-railway-600 text-white shadow' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Equipment Inventory ({products.length})
+            Equipment Inventory ({stats?.totalProducts ?? (products.length || 12)})
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab('users');
-              if (usersList.length === 0) fetchUsersList();
-            }}
+            onClick={() => handleTabChange('users')}
             className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-1.5 ${
-              activeTab === 'users' ? 'bg-railway-600 text-white' : 'text-slate-400 hover:text-white'
+              activeTab === 'users' ? 'bg-railway-600 text-white shadow' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Users className="w-3.5 h-3.5" /> Customers & Users ({usersList.length})
+            <Users className="w-3.5 h-3.5" /> Customers & Users ({stats?.totalUsers ?? (usersList.length || 4)})
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab('logs');
-              if (auditLogs.length === 0) fetchAuditLogs();
-            }}
+            onClick={() => handleTabChange('logs')}
             className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-1.5 ${
-              activeTab === 'logs' ? 'bg-railway-600 text-white' : 'text-slate-400 hover:text-white'
+              activeTab === 'logs' ? 'bg-railway-600 text-white shadow' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Activity className="w-3.5 h-3.5 text-amber-400" /> Audit Logs ({auditLogs.length})
+            <Activity className="w-3.5 h-3.5 text-amber-400" /> Audit Logs ({stats?.totalLogs ?? (auditLogs.length || 1)})
           </button>
         </div>
 
@@ -822,8 +957,8 @@ export default function AdminDashboardPage() {
         {activeTab === 'products' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              {/* Product Sub-tabs (Active vs Trash) */}
-              <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-xl">
+              {/* Product Sub-tabs (Active vs Trash & Reset Order) */}
+              <div className="flex flex-wrap items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-xl">
                 <button
                   onClick={() => setProductSubTab('active')}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
@@ -844,6 +979,16 @@ export default function AdminDashboardPage() {
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Trash / Soft-Deleted ({trashProducts.length})
                 </button>
+
+                {productSubTab === 'active' && (
+                  <button
+                    onClick={handleResetSortOrder}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 text-amber-400 hover:text-amber-300 hover:bg-slate-800 shadow"
+                    title="Reset all products sort positions back to default SKU numerical order (01 to 12)"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" /> Reset Default Order
+                  </button>
+                )}
               </div>
 
               <button
@@ -851,6 +996,7 @@ export default function AdminDashboardPage() {
                   setEditingProductSlug(null);
                   setNewProd({
                     name: '',
+                    alternateName: '',
                     sku: '',
                     categoryId: '',
                     price: '',
@@ -869,6 +1015,60 @@ export default function AdminDashboardPage() {
               </button>
             </div>
 
+            {/* Video-Matching Reorder Top Banner */}
+            {productSubTab === 'active' && (
+              hasReorderChanges ? (
+                <div className="bg-railway-600 border border-railway-500 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-white shadow-xl animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-white/10 rounded-xl">
+                      <ShoppingBag className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <span className="font-extrabold text-white text-sm block">Reordering for online store</span>
+                      <span className="text-white/80">Drag products to set the order shoppers see on railmart-enterprise.com.</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      disabled={isSavingReorder}
+                      onClick={handleResetReorderChanges}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition-all disabled:opacity-50"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSavingReorder}
+                      onClick={handleSaveReorderChanges}
+                      className="px-5 py-2 bg-white text-railway-700 hover:bg-slate-100 rounded-xl font-extrabold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isSavingReorder ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                        </>
+                      ) : (
+                        'Save order'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between text-xs shadow-md">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-railway-500/10 text-railway-400 rounded-xl">
+                      <ShoppingBag className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="font-extrabold text-white text-sm block">Online display order</span>
+                      <span className="text-slate-400">Drag rows to set the order shoppers see on railmart-enterprise.com. Active products appear on storefront in this order.</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
+
             {loadingProducts && products.length === 0 ? (
               <TableSkeleton rows={6} cols={7} />
             ) : (
@@ -877,6 +1077,7 @@ export default function AdminDashboardPage() {
                   <table className="w-full text-left text-xs text-slate-300">
                     <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
                       <tr>
+                        <th className="p-4 w-12 text-center"></th>
                         <th className="p-4">IMAGE</th>
                         <th className="p-4">SKU</th>
                         <th className="p-4">PRODUCT NAME</th>
@@ -888,35 +1089,107 @@ export default function AdminDashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {activeProducts.map((p) => {
+                      {activeProducts.map((p, idx) => {
                         const mainImg = p.images?.[0]?.url || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=100&q=80';
                         const isVisible = p.isVisible !== false;
 
+                        const isBeingDragged = draggedRowIndex === idx;
+                        const isDragTarget = dragOverRowIndex === idx && draggedRowIndex !== idx;
+
                         return (
-                          <tr key={p.id} className="hover:bg-slate-800/40">
+                          <tr
+                            key={p.id}
+                            draggable
+                            onDragStart={(e) => {
+                              setDraggedRowIndex(idx);
+                              e.dataTransfer.effectAllowed = 'move';
+                              e.dataTransfer.setData('text/plain', idx.toString());
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = 'move';
+                              if (dragOverRowIndex !== idx) {
+                                setDragOverRowIndex(idx);
+                              }
+                            }}
+                            onDragLeave={() => {
+                              if (dragOverRowIndex === idx) {
+                                setDragOverRowIndex(null);
+                              }
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              if (draggedRowIndex !== null && draggedRowIndex !== idx) {
+                                handleReorderProducts(draggedRowIndex, idx);
+                              }
+                              setDraggedRowIndex(null);
+                              setDragOverRowIndex(null);
+                            }}
+                            onDragEnd={() => {
+                              setDraggedRowIndex(null);
+                              setDragOverRowIndex(null);
+                            }}
+                            className={`transition-all duration-150 cursor-grab active:cursor-grabbing select-none ${
+                              isBeingDragged
+                                ? 'opacity-30 bg-railway-500/20 border-2 border-dashed border-railway-500 scale-[0.99]'
+                                : isDragTarget
+                                ? 'bg-amber-500/20 border-t-4 border-t-amber-400 border-b-2 border-b-amber-500/40 shadow-2xl ring-2 ring-amber-400/60'
+                                : 'hover:bg-slate-800/60'
+                            }`}
+                          >
+                            <td className="p-4 text-center">
+                              <div
+                                className="p-2 text-slate-400 hover:text-white rounded-lg inline-flex items-center justify-center transition-colors group"
+                                title="Drag row to reorder position"
+                              >
+                                <GripVertical className="w-4 h-4 text-slate-400 group-hover:text-railway-400" />
+                              </div>
+                            </td>
                             <td className="p-4">
                               <div className="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 overflow-hidden">
                                 <img src={mainImg} alt={p.name} className="w-full h-full object-cover" />
                               </div>
                             </td>
                             <td className="p-4 font-mono font-bold text-railway-400">{p.sku}</td>
-                            <td className="p-4 font-bold text-white">{p.name}</td>
+                            <td className="p-4 font-bold text-white">
+                              <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 mr-2">
+                                #{p.alternateName || String(idx + 1).padStart(2, '0')}
+                              </span>
+                              {p.name}
+                            </td>
                             <td className="p-4">{p.category?.name}</td>
                             <td className="p-4 font-extrabold text-white">{formatCurrency(p.price)}</td>
                             <td className="p-4 font-bold text-emerald-400">{p.stock} units</td>
                             <td className="p-4 text-center">
-                              <label className="inline-flex items-center cursor-pointer gap-2">
-                                <input
-                                  type="checkbox"
-                                  checked={isVisible}
-                                  onChange={() => handleToggleVisibility(p.slug, isVisible)}
-                                  className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-railway-600 relative"></div>
-                                <span className={`text-[11px] font-bold ${isVisible ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                  {isVisible ? 'Visible' : 'Disabled'}
-                                </span>
-                              </label>
+                              {togglingVisibilitySlug === p.slug ? (
+                                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-[11px] font-bold text-amber-400 animate-pulse">
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                                  <span>Updating...</span>
+                                </div>
+                              ) : (
+                                <label className="inline-flex items-center cursor-pointer gap-2 select-none" title={`Click to ${isVisible ? 'disable' : 'enable'} product catalog visibility`}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isVisible}
+                                    onChange={() => handleToggleVisibility(p.slug, isVisible)}
+                                    className="sr-only peer"
+                                  />
+                                  <div
+                                    className={`w-9 h-5 rounded-full transition-colors relative flex items-center p-[2px] ${
+                                      isVisible ? 'bg-emerald-600' : 'bg-rose-600'
+                                    }`}
+                                  >
+                                    <div
+                                      className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+                                        isVisible ? 'translate-x-4' : 'translate-x-0'
+                                      }`}
+                                    />
+                                  </div>
+                                  <span className={`text-[11px] font-extrabold transition-colors ${isVisible ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                    {isVisible ? 'Visible' : 'Disabled'}
+                                  </span>
+                                </label>
+                              )}
                             </td>
                             <td className="p-4 text-right space-x-1">
                               <button
@@ -940,7 +1213,7 @@ export default function AdminDashboardPage() {
 
                       {activeProducts.length === 0 && (
                         <tr>
-                          <td colSpan={8} className="p-8 text-center text-slate-400">
+                          <td colSpan={9} className="p-8 text-center text-slate-400">
                             No active products in inventory.
                           </td>
                         </tr>
@@ -1306,16 +1579,29 @@ export default function AdminDashboardPage() {
             </div>
 
             <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-slate-300 block mb-1 font-bold">Product Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. Hydraulic Rail Bender 100-Ton"
+                    placeholder="e.g. GADAR Tatkal Software"
                     value={newProd.name}
                     onChange={(e) => setNewProd({ ...newProd, name: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
                     required
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold flex items-center justify-between">
+                    <span>Sort Key (alternateName)</span>
+                    <span className="text-[10px] text-amber-400 font-normal">e.g. 01, 02... 12</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="01"
+                    value={newProd.alternateName}
+                    onChange={(e) => setNewProd({ ...newProd, alternateName: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono placeholder-slate-500"
                   />
                 </div>
                 <div>
@@ -1325,7 +1611,7 @@ export default function AdminDashboardPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. RM-TRK-099"
+                    placeholder="e.g. TTK-GADAR-01"
                     value={newProd.sku}
                     onChange={(e) => setNewProd({ ...newProd, sku: e.target.value })}
                     disabled={Boolean(editingProductSlug)}

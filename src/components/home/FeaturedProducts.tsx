@@ -40,10 +40,10 @@ export function FeaturedProducts() {
     <section className="py-20 bg-slate-950 border-b border-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="text-xs font-bold text-railway-400 uppercase tracking-widest">Certified & In-Stock</span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">Featured Railway Equipment</h2>
+          <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Official & In-Stock</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">Enterprise D Team Tatkal Softwares</h2>
           <p className="text-slate-400 text-sm mt-3">
-            Heavy-duty tools and certified components ready for immediate dispatch to railway sites and workshops.
+            All 12 High-Speed IRCTC Tatkal software tools & browser extensions by Super Master Bhimdada.
           </p>
         </div>
 

@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
       whereClause.isPopular = true;
     }
 
-    let orderBy: any = { createdAt: 'desc' };
+    let orderBy: any = [{ alternateName: 'asc' }, { sku: 'asc' }, { createdAt: 'asc' }];
     if (sort === 'price-low') orderBy = { price: 'asc' };
     if (sort === 'price-high') orderBy = { price: 'desc' };
     if (sort === 'rating') orderBy = { rating: 'desc' };
@@ -121,6 +121,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       name,
+      alternateName,
       sku,
       categoryId,
       brandId,
@@ -146,6 +147,7 @@ export async function POST(req: NextRequest) {
     const product = await prisma.product.create({
       data: {
         name,
+        alternateName: alternateName || '',
         slug,
         sku,
         categoryId,
