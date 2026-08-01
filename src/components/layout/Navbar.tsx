@@ -98,7 +98,7 @@ export function Navbar() {
   }, [searchQuery]);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors w-full overflow-hidden shadow-sm dark:shadow-none">
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors w-full shadow-sm dark:shadow-none">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Royal Golden Shield Logo */}
         <Link href="/" className="flex items-center gap-2.5 min-w-0 flex-shrink group">
@@ -240,11 +240,11 @@ export function Navbar() {
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl py-2 z-50 divide-y divide-slate-100 dark:divide-slate-800">
-                  <div className="px-4 py-2">
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl py-2 z-50 divide-y divide-slate-100 dark:divide-slate-800 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-950/50 rounded-t-xl">
                     <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-700 border border-amber-500/20 dark:bg-amber-500/20 dark:text-amber-400">
+                    <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-amber-500/10 text-amber-700 border border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-400">
                       {user.role}
                     </span>
                   </div>
@@ -253,7 +253,7 @@ export function Navbar() {
                     <Link
                       href="/account"
                       onClick={() => setIsUserMenuOpen(false)}
-                      className="px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 transition-all rounded-lg mx-1"
+                      className="px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-slate-800 hover:text-amber-600 dark:hover:text-amber-400 flex items-center gap-2 transition-all rounded-xl mx-1"
                     >
                       <User className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <span>My Orders & Profile</span>
@@ -264,7 +264,7 @@ export function Navbar() {
                         <Link
                           href="/admin"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 transition-all rounded-lg mx-1"
+                          className="px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-slate-800 hover:text-amber-600 dark:hover:text-amber-400 flex items-center gap-2 transition-all rounded-xl mx-1"
                         >
                           <LayoutDashboard className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                           <span>Admin Control Panel</span>
@@ -272,7 +272,7 @@ export function Navbar() {
                         <Link
                           href="/admin/crm"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 transition-all rounded-lg mx-1"
+                          className="px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-slate-800 hover:text-amber-600 dark:hover:text-amber-400 flex items-center gap-2 transition-all rounded-xl mx-1"
                         >
                           <Briefcase className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                           <span>Enterprise CRM Panel</span>
@@ -287,7 +287,7 @@ export function Navbar() {
                         setIsUserMenuOpen(false);
                         logout();
                       }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 transition-all rounded-lg mx-1"
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2 transition-all rounded-xl mx-1"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
