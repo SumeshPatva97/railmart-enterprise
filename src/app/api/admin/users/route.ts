@@ -6,7 +6,7 @@ import { logActivity } from '@/lib/logger';
 let usersCache: { data: any; timestamp: number } | null = null;
 const USERS_CACHE_TTL = 30000;
 
-export function clearAdminUsersCache() {
+function clearAdminUsersCache() {
   usersCache = null;
 }
 

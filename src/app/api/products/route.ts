@@ -2,33 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { slugify } from '@/lib/utils';
+import { productsCache, getCatSlugMap, setCatSlugMap, clearProductsCache } from '@/lib/cache';
 
-// Simple In-Memory Cache for GET /api/products
-interface CacheEntry {
-  data: any;
-  timestamp: number;
-}
-
-const productsCache = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 60000; // 60 seconds cache
-
-// Fast In-Memory Category Slug-to-ID lookup
-let catSlugMapCache: Map<string, string> | null = null;
-let catSlugMapTime = 0;
 
 async function getCategoryIdBySlug(slug: string): Promise<string | null> {
   const now = Date.now();
+  const { catSlugMapCache, catSlugMapTime } = getCatSlugMap();
   if (!catSlugMapCache || now - catSlugMapTime > 300000) {
     const allCats = await prisma.category.findMany({ select: { id: true, slug: true } });
-    catSlugMapCache = new Map(allCats.map((c) => [c.slug, c.id]));
-    catSlugMapTime = now;
+    const newMap = new Map(allCats.map((c) => [c.slug, c.id]));
+    setCatSlugMap(newMap, now);
+    return newMap.get(slug) || null;
   }
   return catSlugMapCache.get(slug) || null;
-}
-
-export function clearProductsCache() {
-  productsCache.clear();
-  catSlugMapCache = null;
 }
 
 export async function GET(req: NextRequest) {

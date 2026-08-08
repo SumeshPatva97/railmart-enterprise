@@ -6,7 +6,7 @@ import { logActivity } from '@/lib/logger';
 const userCache = new Map<string, { user: any; timestamp: number }>();
 const USER_CACHE_TTL = 15000;
 
-export function clearUserCache(userId?: string) {
+function clearUserCache(userId?: string) {
   if (userId) {
     userCache.delete(userId);
   } else {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
-import { clearProductsCache } from '../route';
+import { clearProductsCache } from '@/lib/cache';
 
 interface SlugCacheEntry {
   data: any;
@@ -11,7 +11,7 @@ interface SlugCacheEntry {
 const productSlugCache = new Map<string, SlugCacheEntry>();
 const SLUG_CACHE_TTL = 60000;
 
-export function clearProductSlugCache(slug?: string) {
+function clearProductSlugCache(slug?: string) {
   if (slug) {
     productSlugCache.delete(slug);
   } else {
