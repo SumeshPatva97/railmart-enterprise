@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
+let statsCache: { data: any; timestamp: number } | null = null;
+const STATS_TTL = 30000;
+
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized Admin access required.' }, { status: 403 });
+    }
+
+    const now = Date.now();
+    if (statsCache && now - statsCache.timestamp < STATS_TTL) {
+      return NextResponse.json(statsCache.data, {
+        headers: { 'X-Cache': 'HIT' },
+      });
     }
 
     const [totalUsers, totalOrders, totalProducts, totalLogs, pendingOrdersCount, revenueResult, bestSellers, recentOrders] =
@@ -54,7 +64,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({
+    const responsePayload = {
       stats: {
         totalUsers,
         totalOrders,
@@ -66,7 +76,11 @@ export async function GET(req: NextRequest) {
       },
       bestSellingProducts,
       recentOrders,
-    });
+    };
+
+    statsCache = { data: responsePayload, timestamp: Date.now() };
+
+    return NextResponse.json(responsePayload);
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }

@@ -26,9 +26,8 @@ export function HeroBanner() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
-            ENTERPRISE <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-200">
-              D TEAM BY BHIMDADA
+              D ENTERPRISE TEAM
             </span>
           </h1>
 

@@ -441,9 +441,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     async function fetchProduct() {
       try {
-        const res = await fetch(`/api/products/${slug}`);
+        const res = await fetch(`/api/products/${slug}`, { signal });
         if (res.ok) {
           const data = await res.json();
           setProduct(data.product);
@@ -451,13 +454,22 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             setSelectedImg(data.product.images[0].url);
           }
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error(err);
+        }
       } finally {
-        setLoading(false);
+        if (!signal.aborted) {
+          setLoading(false);
+        }
       }
     }
+
     fetchProduct();
+
+    return () => {
+      controller.abort();
+    };
   }, [slug]);
 
   if (loading) {
@@ -515,7 +527,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Breadcrumb */}
         <div className="text-xs text-slate-400 mb-6 flex items-center gap-2">
-          <span>Enterprise D Team</span>
+          <span>D Enterprise Team</span>
           <span>/</span>
           <span className="text-amber-400 font-semibold">{product.category?.name || 'Tatkal Software'}</span>
           <span>/</span>

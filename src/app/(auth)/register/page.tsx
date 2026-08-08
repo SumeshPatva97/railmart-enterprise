@@ -38,7 +38,7 @@ export default function RegisterPage() {
             <Train className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-extrabold text-white">Create Account</h1>
-          <p className="text-xs text-slate-400">Join ENTERPRISE D TEAM to order Tatkal booking tools & extensions.</p>
+          <p className="text-xs text-slate-400">Join D ENTERPRISE TEAM to order Tatkal booking tools & extensions.</p>
         </div>
 
         {error && <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs p-3 rounded-xl font-semibold">{error}</div>}

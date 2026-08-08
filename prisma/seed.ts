@@ -98,7 +98,7 @@ async function main() {
   // 2. Create Brand
   const brandSoftvps = await prisma.brand.create({
     data: {
-      name: 'Enterprise D Team',
+      name: 'D Enterprise Team',
       slug: 'enterprise-d-team',
       website: 'https://denterpriese.softvps.in',
     },
@@ -555,7 +555,7 @@ async function main() {
   // 6. Create Banner
   await prisma.banner.create({
     data: {
-      title: 'Enterprise D Team - Super Master Bhimdada',
+      title: 'D Enterprise Team',
       subtitle: 'Original & Verified Tatkal Software Solutions with High Speed & Fast Support (Domain: denterpriese.softvps.in)',
       image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1600&q=80',
       link: '/products',

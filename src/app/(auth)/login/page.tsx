@@ -28,27 +28,6 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-  const handleDemoLogin = async (type: 'admin' | 'customer') => {
-    setError('');
-    setLoading(true);
-    const demoCreds =
-      type === 'admin'
-        ? { email: 'admin@railmart.com', password: 'Admin@123456' }
-        : { email: 'customer@railmart.com', password: 'Customer@123456' };
-
-    setEmail(demoCreds.email);
-    setPassword(demoCreds.password);
-
-    const res = await login(demoCreds);
-    if (res.success) {
-      if (type === 'admin') router.push('/admin');
-      else router.push('/products');
-    } else {
-      setError(res.error || 'Demo login failed');
-    }
-    setLoading(false);
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6">
@@ -56,29 +35,8 @@ export default function LoginPage() {
           <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-black text-xl mx-auto shadow-lg shadow-amber-500/10">
             D
           </div>
-          <h1 className="text-2xl font-extrabold text-white">Sign In to Enterprise D Team</h1>
+          <h1 className="text-2xl font-extrabold text-white">Sign In to D Enterprise Team</h1>
           <p className="text-xs text-slate-400">Official Tatkal Software Portal (denterpriese.softvps.in)</p>
-        </div>
-
-        {/* Demo Accounts Bar */}
-        <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 text-center space-y-2">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quick Demo Login</p>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <button
-              type="button"
-              onClick={() => handleDemoLogin('admin')}
-              className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold py-2 rounded-xl transition-all"
-            >
-              Demo Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemoLogin('customer')}
-              className="bg-railway-500/10 hover:bg-railway-500/20 text-railway-400 border border-railway-500/30 font-bold py-2 rounded-xl transition-all"
-            >
-              Demo Customer
-            </button>
-          </div>
         </div>
 
         {error && <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs p-3 rounded-xl font-semibold">{error}</div>}

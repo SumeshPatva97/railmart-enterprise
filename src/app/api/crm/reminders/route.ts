@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
+let remindersCache: { data: any; timestamp: number } | null = null;
+const REMINDERS_CACHE_TTL = 30000;
+
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
@@ -9,11 +12,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    const now = Date.now();
+    if (remindersCache && now - remindersCache.timestamp < REMINDERS_CACHE_TTL) {
+      return NextResponse.json(remindersCache.data, { headers: { 'X-Cache': 'HIT' } });
+    }
+
     const reminders = await prisma.reminder.findMany({
       orderBy: { dueDate: 'asc' },
     });
 
-    return NextResponse.json({ reminders });
+    const payload = { reminders };
+    remindersCache = { data: payload, timestamp: now };
+
+    return NextResponse.json(payload);
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }

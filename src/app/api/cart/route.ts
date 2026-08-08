@@ -16,7 +16,19 @@ export async function GET(req: NextRequest) {
         items: {
           include: {
             product: {
-              include: { images: true },
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                sku: true,
+                price: true,
+                discount: true,
+                gstPercent: true,
+                deliveryCharges: true,
+                images: {
+                  select: { id: true, url: true, alt: true, isPrimary: true },
+                },
+              },
             },
           },
         },
@@ -26,7 +38,27 @@ export async function GET(req: NextRequest) {
     if (!cart) {
       cart = await prisma.cart.create({
         data: { userId: user.id },
-        include: { items: { include: { product: { include: { images: true } } } } },
+        include: {
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  sku: true,
+                  price: true,
+                  discount: true,
+                  gstPercent: true,
+                  deliveryCharges: true,
+                  images: {
+                    select: { id: true, url: true, alt: true, isPrimary: true },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
     }
 

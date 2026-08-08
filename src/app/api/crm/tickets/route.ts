@@ -11,10 +11,18 @@ export async function GET(req: NextRequest) {
 
     const tickets = await prisma.supportTicket.findMany({
       where: whereClause,
-      include: {
+      select: {
+        id: true,
+        ticketNumber: true,
+        subject: true,
+        category: true,
+        priority: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
         user: { select: { name: true, email: true } },
-        messages: { orderBy: { createdAt: 'asc' } },
-        crmNotes: { orderBy: { createdAt: 'desc' } },
+        _count: { select: { messages: true } },
+        crmNotes: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
       orderBy: { createdAt: 'desc' },
     });

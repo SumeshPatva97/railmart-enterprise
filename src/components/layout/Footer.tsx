@@ -14,11 +14,11 @@ export function Footer() {
           <Link href="/" className="flex items-center gap-3 text-xl font-bold tracking-tight text-white group">
             <img
               src="/images/logo.png"
-              alt="ENTERPRISE D TEAM BY BHIMDADA Logo"
+              alt="D ENTERPRISE TEAM Logo"
               className="h-12 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform"
             />
             <span className="text-lg font-extrabold text-white">
-              ENTERPRISE <span className="text-amber-400">D TEAM</span> BY BHIMDADA
+              D <span className="text-amber-400">ENTERPRISE</span> TEAM
             </span>
           </Link>
           <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
@@ -75,7 +75,7 @@ export function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-900 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-        <p>&copy; {new Date().getFullYear()} ENTERPRISE D TEAM BY BHIMDADA. All Rights Reserved.</p>
+        <p>&copy; {new Date().getFullYear()} D ENTERPRISE TEAM. All Rights Reserved.</p>
         <div className="flex items-center gap-6">
           <span className="text-slate-400">Domain: denterpriese.softvps.in</span>
           <a href="https://whatsapp.com/channel/0029Vb8ikne7Noa8Auu2yp0T" target="_blank" rel="noreferrer" className="hover:text-emerald-400 transition-colors">WhatsApp Channel</a>

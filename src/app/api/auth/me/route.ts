@@ -3,11 +3,28 @@ import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { logActivity } from '@/lib/logger';
 
+const userCache = new Map<string, { user: any; timestamp: number }>();
+const USER_CACHE_TTL = 15000;
+
+export function clearUserCache(userId?: string) {
+  if (userId) {
+    userCache.delete(userId);
+  } else {
+    userCache.clear();
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
     const payload = getUserFromRequest(req);
     if (!payload) {
       return NextResponse.json({ user: null }, { status: 401 });
+    }
+
+    const now = Date.now();
+    const cached = userCache.get(payload.id);
+    if (cached && now - cached.timestamp < USER_CACHE_TTL) {
+      return NextResponse.json({ user: cached.user }, { headers: { 'X-Cache': 'HIT' } });
     }
 
     const user = await prisma.user.findUnique({
@@ -27,6 +44,8 @@ export async function GET(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ user: null }, { status: 404 });
     }
+
+    userCache.set(payload.id, { user, timestamp: now });
 
     return NextResponse.json({ user });
   } catch (error: any) {
@@ -81,6 +100,7 @@ export async function PUT(req: NextRequest) {
       req
     );
 
+    clearUserCache(payload.id);
     return NextResponse.json({ user: updatedUser, message: 'Profile updated successfully.' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

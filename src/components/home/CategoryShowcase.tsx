@@ -29,7 +29,7 @@ export function CategoryShowcase() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div>
-            <span className="text-xs font-bold text-amber-400 tracking-wider uppercase">Enterprise D Team Categories</span>
+            <span className="text-xs font-bold text-amber-400 tracking-wider uppercase">D Enterprise Team Categories</span>
             <h2 className="text-3xl font-extrabold text-white mt-1">High-Speed Tatkal Solutions</h2>
           </div>
           <Link

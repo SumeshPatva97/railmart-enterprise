@@ -35,28 +35,38 @@ function ProductsCatalogContent() {
   useEffect(() => {
     const catFromUrl = searchParams.get('category') || '';
     const searchFromUrl = searchParams.get('search') || '';
-    setSelectedCategory(catFromUrl);
-    if (searchFromUrl) {
+    if (catFromUrl !== selectedCategory) {
+      setSelectedCategory(catFromUrl);
+    }
+    if (searchFromUrl !== searchQuery) {
       setSearchQuery(searchFromUrl);
     }
   }, [searchParams]);
 
   useEffect(() => {
+    const catController = new AbortController();
     async function fetchCategories() {
       try {
-        const res = await fetch('/api/categories');
+        const res = await fetch('/api/categories', { signal: catController.signal });
         if (res.ok) {
           const data = await res.json();
           setCategories(data.categories || []);
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error(err);
+        }
       }
     }
     fetchCategories();
+    return () => {
+      catController.abort();
+    };
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchProducts() {
       setLoading(true);
       try {
@@ -68,19 +78,29 @@ function ProductsCatalogContent() {
         if (maxPrice) params.set('maxPrice', maxPrice);
         if (minRating) params.set('minRating', minRating);
 
-        const res = await fetch(`/api/products?${params.toString()}`);
+        const res = await fetch(`/api/products?${params.toString()}`, {
+          signal: controller.signal,
+        });
         if (res.ok) {
           const data = await res.json();
           setProducts(data.products || []);
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error(err);
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     fetchProducts();
+
+    return () => {
+      controller.abort();
+    };
   }, [selectedCategory, searchQuery, sortOption, minPrice, maxPrice, minRating]);
 
   // Handler to select category and sync browser URL bar
@@ -272,13 +292,15 @@ function ProductsCatalogContent() {
                       className="group rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between overflow-hidden shadow-lg"
                     >
                       <div className="relative h-48 sm:h-52 bg-slate-950 overflow-hidden">
-                        <img
-                          src={mainImg}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
+                        <Link href={`/products/${product.slug}`} className="block w-full h-full cursor-pointer">
+                          <img
+                            src={mainImg}
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </Link>
 
-                        <div className="absolute top-3 left-3 flex flex-col gap-1 z-10">
+                        <div className="absolute top-3 left-3 flex flex-col gap-1 z-10 pointer-events-none">
                           {product.discount > 0 && (
                             <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
                               {product.discount}% OFF
@@ -288,7 +310,7 @@ function ProductsCatalogContent() {
 
                         <button
                           onClick={() => toggleWishlist(product.id)}
-                          className={`absolute top-3 right-3 p-2 rounded-full border backdrop-blur-md transition-all ${
+                          className={`absolute top-3 right-3 p-2 rounded-full border backdrop-blur-md transition-all z-20 ${
                             isFav
                               ? 'bg-rose-500/20 border-rose-500 text-rose-500'
                               : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:text-rose-400'

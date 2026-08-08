@@ -3,8 +3,21 @@ import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { slugify } from '@/lib/utils';
 
+let categoriesCache: { data: any; timestamp: number } | null = null;
+const CAT_CACHE_TTL = 60000;
+
 export async function GET() {
   try {
+    const now = Date.now();
+    if (categoriesCache && now - categoriesCache.timestamp < CAT_CACHE_TTL) {
+      return NextResponse.json(categoriesCache.data, {
+        headers: {
+          'X-Cache': 'HIT',
+          'Cache-Control': 'public, max-age=60, s-maxage=60',
+        },
+      });
+    }
+
     const categories = await prisma.category.findMany({
       include: {
         children: true,
@@ -14,7 +27,16 @@ export async function GET() {
       },
       orderBy: { name: 'asc' },
     });
-    return NextResponse.json({ categories });
+
+    const responsePayload = { categories };
+    categoriesCache = { data: responsePayload, timestamp: now };
+
+    return NextResponse.json(responsePayload, {
+      headers: {
+        'X-Cache': 'MISS',
+        'Cache-Control': 'public, max-age=60, s-maxage=60',
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }

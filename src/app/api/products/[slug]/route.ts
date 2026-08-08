@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { clearProductsCache } from '../route';
+
+interface SlugCacheEntry {
+  data: any;
+  timestamp: number;
+}
+
+const productSlugCache = new Map<string, SlugCacheEntry>();
+const SLUG_CACHE_TTL = 60000;
+
+export function clearProductSlugCache(slug?: string) {
+  if (slug) {
+    productSlugCache.delete(slug);
+  } else {
+    productSlugCache.clear();
+  }
+}
 
 export async function GET(
   req: NextRequest,
@@ -8,6 +25,17 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
+    const now = Date.now();
+    const cached = productSlugCache.get(slug);
+    if (cached && now - cached.timestamp < SLUG_CACHE_TTL) {
+      return NextResponse.json(cached.data, {
+        headers: {
+          'X-Cache': 'HIT',
+          'Cache-Control': 'public, max-age=60, s-maxage=60',
+        },
+      });
+    }
+
     const product = await prisma.product.findUnique({
       where: { slug },
       include: {
@@ -29,7 +57,15 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ product });
+    const responsePayload = { product };
+    productSlugCache.set(slug, { data: responsePayload, timestamp: now });
+
+    return NextResponse.json(responsePayload, {
+      headers: {
+        'X-Cache': 'MISS',
+        'Cache-Control': 'public, max-age=60, s-maxage=60',
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
@@ -89,6 +125,8 @@ export async function PUT(
       },
     });
 
+    clearProductSlugCache(slug);
+    clearProductsCache();
     return NextResponse.json({ product, message: 'Product updated successfully.' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
@@ -113,6 +151,8 @@ export async function DELETE(
       data: { is_deleted: 1 },
     });
 
+    clearProductSlugCache(slug);
+    clearProductsCache();
     return NextResponse.json({ product, message: 'Product soft-deleted successfully (can be restored).' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

@@ -11,7 +11,22 @@ export async function GET(req: NextRequest) {
       where: { userId: user.id },
       include: {
         product: {
-          include: { images: true, category: true },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            sku: true,
+            price: true,
+            discount: true,
+            rating: true,
+            reviewsCount: true,
+            images: {
+              select: { id: true, url: true, isPrimary: true },
+            },
+            category: {
+              select: { id: true, name: true, slug: true },
+            },
+          },
         },
       },
     });

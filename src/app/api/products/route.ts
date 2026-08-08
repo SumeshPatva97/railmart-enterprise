@@ -3,6 +3,34 @@ import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { slugify } from '@/lib/utils';
 
+// Simple In-Memory Cache for GET /api/products
+interface CacheEntry {
+  data: any;
+  timestamp: number;
+}
+
+const productsCache = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 60000; // 60 seconds cache
+
+// Fast In-Memory Category Slug-to-ID lookup
+let catSlugMapCache: Map<string, string> | null = null;
+let catSlugMapTime = 0;
+
+async function getCategoryIdBySlug(slug: string): Promise<string | null> {
+  const now = Date.now();
+  if (!catSlugMapCache || now - catSlugMapTime > 300000) {
+    const allCats = await prisma.category.findMany({ select: { id: true, slug: true } });
+    catSlugMapCache = new Map(allCats.map((c) => [c.slug, c.id]));
+    catSlugMapTime = now;
+  }
+  return catSlugMapCache.get(slug) || null;
+}
+
+export function clearProductsCache() {
+  productsCache.clear();
+  catSlugMapCache = null;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -21,6 +49,19 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
 
+    // Deterministic Normalized Cache Key
+    const cacheKey = searchParams.toString() || 'default';
+    const now = Date.now();
+    const cached = productsCache.get(cacheKey);
+    if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+      return NextResponse.json(cached.data, {
+        headers: {
+          'X-Cache': 'HIT',
+          'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30',
+        },
+      });
+    }
+
     const whereClause: any = {};
 
     // Soft delete filtering
@@ -36,15 +77,24 @@ export async function GET(req: NextRequest) {
     }
 
     if (category) {
-      whereClause.category = {
-        slug: category,
-      };
+      const catId = await getCategoryIdBySlug(category);
+      if (catId) {
+        whereClause.categoryId = catId;
+      } else {
+        whereClause.categoryId = 'non-existent-id';
+      }
     }
 
     if (brand) {
-      whereClause.brand = {
-        slug: brand,
-      };
+      const brandObj = await prisma.brand.findUnique({
+        where: { slug: brand },
+        select: { id: true },
+      });
+      if (brandObj) {
+        whereClause.brandId = brandObj.id;
+      } else {
+        whereClause.brandId = 'non-existent-id';
+      }
     }
 
     if (search) {
@@ -73,7 +123,8 @@ export async function GET(req: NextRequest) {
       whereClause.isPopular = true;
     }
 
-    let orderBy: any = [{ alternateName: 'asc' }, { sku: 'asc' }, { createdAt: 'asc' }];
+    let orderBy: any = { createdAt: 'desc' };
+    if (sort === 'newest') orderBy = { createdAt: 'desc' };
     if (sort === 'price-low') orderBy = { price: 'asc' };
     if (sort === 'price-high') orderBy = { price: 'desc' };
     if (sort === 'rating') orderBy = { rating: 'desc' };
@@ -87,22 +138,69 @@ export async function GET(req: NextRequest) {
         orderBy,
         skip,
         take: limit,
-        include: {
-          category: true,
-          brand: true,
-          images: true,
+        select: {
+          id: true,
+          name: true,
+          alternateName: true,
+          slug: true,
+          sku: true,
+          price: true,
+          discount: true,
+          stock: true,
+          gstPercent: true,
+          deliveryCharges: true,
+          rating: true,
+          reviewsCount: true,
+          status: true,
+          isVisible: true,
+          isFeatured: true,
+          isPopular: true,
+          createdAt: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          brand: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          images: {
+            take: 1,
+            select: {
+              id: true,
+              url: true,
+              alt: true,
+              isPrimary: true,
+            },
+          },
         },
       }),
       prisma.product.count({ where: whereClause }),
     ]);
 
-    return NextResponse.json({
+    const responsePayload = {
       products,
       pagination: {
         total: totalCount,
         page,
         limit,
         totalPages: Math.ceil(totalCount / limit),
+      },
+    };
+
+    // Set cache
+    productsCache.set(cacheKey, { data: responsePayload, timestamp: Date.now() });
+
+    return NextResponse.json(responsePayload, {
+      headers: {
+        'X-Cache': 'MISS',
+        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30',
       },
     });
   } catch (error: any) {
@@ -177,6 +275,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    clearProductsCache();
     return NextResponse.json({ product, message: 'Product created successfully.' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

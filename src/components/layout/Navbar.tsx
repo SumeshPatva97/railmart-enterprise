@@ -104,15 +104,12 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-2.5 min-w-0 flex-shrink group">
           <img
             src="/images/logo.png"
-            alt="ENTERPRISE D TEAM BY BHIMDADA Logo"
+            alt="D ENTERPRISE TEAM Logo"
             className="h-10 sm:h-12 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 flex-shrink-0"
           />
           <div className="min-w-0">
             <span className="font-black text-xs sm:text-base tracking-tight text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors block leading-tight truncate">
-              ENTERPRISE D TEAM
-            </span>
-            <span className="hidden sm:block text-[10px] text-amber-600 dark:text-amber-400 font-extrabold tracking-wider uppercase mt-0.5">
-              BY BHIMDADA
+              D ENTERPRISE TEAM
             </span>
           </div>
         </Link>

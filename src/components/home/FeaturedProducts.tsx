@@ -14,20 +14,31 @@ export function FeaturedProducts() {
   const [addedId, setAddedId] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     async function fetchFeatured() {
       try {
-        const res = await fetch('/api/products?featured=true');
+        const res = await fetch('/api/products?featured=true', { signal });
         if (res.ok) {
           const data = await res.json();
           setProducts(data.products || []);
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error(err);
+        }
       } finally {
-        setLoading(false);
+        if (!signal.aborted) {
+          setLoading(false);
+        }
       }
     }
     fetchFeatured();
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   const handleAddToCart = async (product: ProductType) => {
@@ -41,7 +52,7 @@ export function FeaturedProducts() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Official & In-Stock</span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">Enterprise D Team Tatkal Softwares</h2>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">D Enterprise Team Tatkal Softwares</h2>
           <p className="text-slate-400 text-sm mt-3">
             All 12 High-Speed IRCTC Tatkal software tools & browser extensions by Super Master Bhimdada.
           </p>
@@ -66,14 +77,16 @@ export function FeaturedProducts() {
                   className="group rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-2xl"
                 >
                   <div className="relative h-56 bg-slate-950 overflow-hidden">
-                    <img
-                      src={mainImg}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    <Link href={`/products/${product.slug}`} className="block w-full h-full cursor-pointer">
+                      <img
+                        src={mainImg}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </Link>
 
                     {/* Badges */}
-                    <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                    <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 pointer-events-none">
                       {product.discount > 0 && (
                         <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
                           {product.discount}% OFF
@@ -87,7 +100,7 @@ export function FeaturedProducts() {
                     {/* Wishlist Button */}
                     <button
                       onClick={() => toggleWishlist(product.id)}
-                      className={`absolute top-3 right-3 p-2 rounded-full border backdrop-blur-md transition-all ${
+                      className={`absolute top-3 right-3 p-2 rounded-full border backdrop-blur-md transition-all z-20 ${
                         isFav
                           ? 'bg-rose-500/20 border-rose-500 text-rose-500'
                           : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:text-rose-400'

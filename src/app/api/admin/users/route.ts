@@ -3,11 +3,23 @@ import { prisma } from '@/lib/prisma';
 import { getUserFromRequest, hashPassword } from '@/lib/auth';
 import { logActivity } from '@/lib/logger';
 
+let usersCache: { data: any; timestamp: number } | null = null;
+const USERS_CACHE_TTL = 30000;
+
+export function clearAdminUsersCache() {
+  usersCache = null;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 });
+    }
+
+    const now = Date.now();
+    if (usersCache && now - usersCache.timestamp < USERS_CACHE_TTL) {
+      return NextResponse.json(usersCache.data, { headers: { 'X-Cache': 'HIT' } });
     }
 
     const users = await prisma.user.findMany({
@@ -27,7 +39,10 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json({ users });
+    const payload = { users };
+    usersCache = { data: payload, timestamp: now };
+
+    return NextResponse.json(payload);
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }

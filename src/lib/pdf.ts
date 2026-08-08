@@ -45,7 +45,7 @@ export function generateInvoiceHTML(order: any): string {
     <body>
       <div class="invoice-header">
         <div>
-          <h1 class="company-title">ENTERPRISE D TEAM</h1>
+          <h1 class="company-title">D ENTERPRISE TEAM</h1>
           <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Official IRCTC Tatkal Software & Extension Portal</p>
         </div>
         <div>
@@ -113,7 +113,7 @@ export function generateInvoiceHTML(order: any): string {
       </div>
 
       <div class="footer-note">
-        <p>This is a computer-generated invoice. Thank you for choosing ENTERPRISE D TEAM BY BHIMDADA.</p>
+        <p>This is a computer-generated invoice. Thank you for choosing D ENTERPRISE TEAM.</p>
         <p>Support: +66805849689 | Domain: denterpriese.softvps.in</p>
       </div>
     </body>
