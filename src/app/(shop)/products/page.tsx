@@ -50,11 +50,14 @@ function ProductsCatalogContent() {
         const res = await fetch('/api/categories', { signal: catController.signal });
         if (res.ok) {
           const data = await res.json();
-          setCategories(data.categories || []);
+          if (!catController.signal.aborted) {
+            setCategories(data.categories || []);
+          }
         }
       } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          console.error(err);
+        if (catController.signal.aborted) return;
+        if (err.name !== 'AbortError' && err.message !== 'Failed to fetch') {
+          console.error('Fetch categories error:', err);
         }
       }
     }
@@ -83,11 +86,14 @@ function ProductsCatalogContent() {
         });
         if (res.ok) {
           const data = await res.json();
-          setProducts(data.products || []);
+          if (!controller.signal.aborted) {
+            setProducts(data.products || []);
+          }
         }
       } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          console.error(err);
+        if (controller.signal.aborted) return;
+        if (err.name !== 'AbortError' && err.message !== 'Failed to fetch') {
+          console.error('Fetch products error:', err);
         }
       } finally {
         if (!controller.signal.aborted) {

@@ -446,7 +446,7 @@ export default function AdminDashboardPage() {
       name: p.name,
       alternateName: p.alternateName || '',
       sku: p.sku,
-      categoryId: p.categoryId || '',
+      categoryId: p.categoryId || p.category?.id || '',
       price: String(p.price),
       stock: String(p.stock),
       description: p.description || '',
@@ -488,8 +488,8 @@ export default function AdminDashboardPage() {
           categoryId: newProd.categoryId,
           price: newProd.price,
           stock: newProd.stock,
-          description: newProd.description,
-          features: newProd.features.split('\n').filter(Boolean),
+          description: newProd.description || '',
+          features: (typeof newProd.features === 'string' ? newProd.features : '').split('\n').filter(Boolean),
           images: allImages,
           isVisible: newProd.isVisible,
         }),
@@ -861,15 +861,36 @@ export default function AdminDashboardPage() {
                             </td>
                             <td className="p-4 font-bold text-railway-400">{formatCurrency(ord.totalAmount)}</td>
                             <td className="p-4">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                                  ord.paymentStatus === 'REFUNDED'
-                                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                                    : 'bg-slate-800 text-slate-300 border-slate-700'
-                                }`}
-                              >
-                                {ord.paymentMethod} ({ord.paymentStatus})
-                              </span>
+                              {(() => {
+                                const pUtr = ord.payments && ord.payments.length > 0 ? ord.payments[0].transactionId : null;
+                                return (
+                                  <div className="space-y-1">
+                                    <span
+                                      className={`px-2 py-0.5 rounded text-[10px] font-bold border block w-fit ${
+                                        ord.paymentStatus === 'PENDING_VERIFICATION'
+                                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                          : ord.paymentStatus === 'COMPLETED'
+                                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                          : ord.paymentStatus === 'REFUNDED'
+                                          ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                                          : 'bg-slate-800 text-slate-300 border-slate-700'
+                                      }`}
+                                    >
+                                      {ord.paymentMethod} ({ord.paymentStatus})
+                                    </span>
+                                    {pUtr && (
+                                      <p className="text-[11px] font-mono text-railway-300 font-semibold">
+                                        UTR: {pUtr}
+                                      </p>
+                                    )}
+                                    {ord.notes && !pUtr && (
+                                      <p className="text-[10px] text-slate-400 truncate max-w-[150px]">
+                                        {ord.notes}
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </td>
                             <td className="p-4">
                               <select
@@ -897,6 +918,24 @@ export default function AdminDashboardPage() {
                               </select>
                             </td>
                             <td className="p-4 text-right space-x-2">
+                              {ord.paymentStatus === 'PENDING_VERIFICATION' && (
+                                <button
+                                  disabled={isProcessingThis}
+                                  onClick={() => handleUpdateOrderStatus(ord.id, 'CONFIRMED', 'COMPLETED')}
+                                  className="text-white font-bold text-[11px] bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg transition-all shadow-md shadow-emerald-600/30 inline-flex items-center gap-1"
+                                >
+                                  {isProcessingThis ? (
+                                    <>
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Verifying...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle2 className="w-3.5 h-3.5" /> Verify Payment
+                                    </>
+                                  )}
+                                </button>
+                              )}
+
                               {isRefundRequested && (
                                 <button
                                   disabled={isProcessingThis}
@@ -1438,8 +1477,8 @@ export default function AdminDashboardPage() {
             }
           }}
         >
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-md w-full space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
               <h3 className="text-base font-bold text-white">
                 {editingUser ? 'Edit Customer Details' : 'Add New Customer Account'}
               </h3>
@@ -1449,75 +1488,82 @@ export default function AdminDashboardPage() {
                   setShowAddUserModal(false);
                   setEditingUser(null);
                 }}
-                className="text-slate-400 hover:text-white p-1 disabled:opacity-50"
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors"
+                title="Close Modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveUser} className="space-y-3 text-xs">
-              <div>
-                <label className="text-slate-300 block mb-1 font-bold">Full Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Rajesh Kumar"
-                  value={userFormData.name}
-                  onChange={(e) => setUserFormData({ ...userFormData, name: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 block mb-1 font-bold">Email Address</label>
-                <input
-                  type="email"
-                  placeholder="e.g. rajesh@railways.gov.in"
-                  value={userFormData.email}
-                  onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 block mb-1 font-bold">Phone Number</label>
-                <input
-                  type="text"
-                  placeholder="e.g. +91 98765 43210"
-                  value={userFormData.phone}
-                  onChange={(e) => setUserFormData({ ...userFormData, phone: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
-                />
-              </div>
-
-              {!editingUser && (
+            <form onSubmit={handleSaveUser} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto space-y-3 text-xs flex-1">
                 <div>
-                  <label className="text-slate-300 block mb-1 font-bold">Initial Password</label>
+                  <label className="text-slate-300 block mb-1 font-bold">Full Name</label>
                   <input
-                    type="password"
-                    placeholder="Leave blank for Customer@123456"
-                    value={userFormData.password}
-                    onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
+                    type="text"
+                    placeholder="e.g. Rajesh Kumar"
+                    value={userFormData.name}
+                    onChange={(e) => setUserFormData({ ...userFormData, name: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                    required
                   />
                 </div>
-              )}
 
-              <div>
-                <label className="text-slate-300 block mb-1 font-bold">Account Role</label>
-                <select
-                  value={userFormData.role}
-                  onChange={(e) => setUserFormData({ ...userFormData, role: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
-                >
-                  <option value="CUSTOMER">CUSTOMER</option>
-                  <option value="ADMIN">ADMIN</option>
-                  <option value="SUPPORT">SUPPORT</option>
-                </select>
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="e.g. rajesh@railways.gov.in"
+                    value={userFormData.email}
+                    onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold flex items-center justify-between">
+                    <span>Phone Number</span>
+                    <span className="text-[10px] text-amber-400 font-normal">10 Digits</span>
+                  </label>
+                  <input
+                    type="tel"
+                    maxLength={10}
+                    placeholder="9876543210"
+                    value={userFormData.phone}
+                    onChange={(e) => setUserFormData({ ...userFormData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono"
+                  />
+                </div>
+
+                {!editingUser && (
+                  <div>
+                    <label className="text-slate-300 block mb-1 font-bold">Initial Password</label>
+                    <input
+                      type="password"
+                      placeholder="Leave blank for Customer@123456"
+                      value={userFormData.password}
+                      onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Account Role</label>
+                  <select
+                    value={userFormData.role}
+                    onChange={(e) => setUserFormData({ ...userFormData, role: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                  >
+                    <option value="CUSTOMER">CUSTOMER</option>
+                    <option value="ADMIN">ADMIN</option>
+                    <option value="SUPPORT">SUPPORT</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="flex gap-2 justify-end pt-3 border-t border-slate-800">
+              <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-end gap-3 bg-slate-900 flex-shrink-0">
                 <button
                   type="button"
                   disabled={isSubmittingUser}
@@ -1525,14 +1571,14 @@ export default function AdminDashboardPage() {
                     setShowAddUserModal(false);
                     setEditingUser(null);
                   }}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 disabled:opacity-50"
+                  className="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 disabled:opacity-50 transition-colors text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingUser}
-                  className="px-5 py-2 bg-railway-600 hover:bg-railway-500 text-white rounded-xl font-bold disabled:opacity-50 inline-flex items-center gap-1.5"
+                  className="px-5 py-2.5 bg-railway-600 hover:bg-railway-500 text-white rounded-xl font-bold disabled:opacity-50 transition-all shadow-lg shadow-railway-600/30 inline-flex items-center gap-1.5 text-xs"
                 >
                   {isSubmittingUser ? (
                     <>
@@ -1561,8 +1607,8 @@ export default function AdminDashboardPage() {
             }
           }}
         >
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-xl w-full space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
               <h3 className="text-base font-bold text-white">
                 {editingProductSlug ? 'Edit Railway Product' : 'Add New Railway Product'}
               </h3>
@@ -1572,195 +1618,221 @@ export default function AdminDashboardPage() {
                   setShowAddProduct(false);
                   setEditingProductSlug(null);
                 }}
-                className="text-slate-400 hover:text-white p-1 disabled:opacity-50"
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors"
+                title="Close Modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-slate-300 block mb-1 font-bold">Product Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. GADAR Tatkal Software"
-                    value={newProd.name}
-                    onChange={(e) => setNewProd({ ...newProd, name: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-300 block mb-1 font-bold flex items-center justify-between">
-                    <span>Sort Key (alternateName)</span>
-                    <span className="text-[10px] text-amber-400 font-normal">e.g. 01, 02... 12</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="01"
-                    value={newProd.alternateName}
-                    onChange={(e) => setNewProd({ ...newProd, alternateName: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono placeholder-slate-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-300 block mb-1 font-bold flex items-center justify-between">
-                    <span>SKU Code</span>
-                    {editingProductSlug && <span className="text-[10px] text-amber-400 font-normal">Unique (Read-only)</span>}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. TTK-GADAR-01"
-                    value={newProd.sku}
-                    onChange={(e) => setNewProd({ ...newProd, sku: e.target.value })}
-                    disabled={Boolean(editingProductSlug)}
-                    className={`w-full border rounded-xl p-2.5 text-white placeholder-slate-500 uppercase font-mono ${
-                      editingProductSlug
-                        ? 'bg-slate-900/60 border-slate-800/80 text-slate-400 cursor-not-allowed'
-                        : 'bg-slate-950 border-slate-800'
-                    }`}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-slate-300 block mb-1 font-bold">Category</label>
-                  <select
-                    value={newProd.categoryId}
-                    onChange={(e) => setNewProd({ ...newProd, categoryId: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-slate-300 block mb-1 font-bold">Price (₹)</label>
-                  <input
-                    type="number"
-                    placeholder="145000"
-                    value={newProd.price}
-                    onChange={(e) => setNewProd({ ...newProd, price: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-300 block mb-1 font-bold">Stock Quantity</label>
-                  <input
-                    type="number"
-                    placeholder="15"
-                    value={newProd.stock}
-                    onChange={(e) => setNewProd({ ...newProd, stock: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-slate-300 block mb-1 font-bold">Description</label>
-                <textarea
-                  rows={2}
-                  placeholder="Detailed specifications, RDSO standards compliance..."
-                  value={newProd.description}
-                  onChange={(e) => setNewProd({ ...newProd, description: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 block mb-1 font-bold">Technical Specifications (One per line)</label>
-                <textarea
-                  rows={2}
-                  placeholder="100-Ton Bending Capability&#10;RDSO Approved Design"
-                  value={newProd.features}
-                  onChange={(e) => setNewProd({ ...newProd, features: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
-                />
-              </div>
-
-              {/* Product Image Upload Section [png, jpg, jpeg] */}
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-                <label className="text-slate-200 font-bold flex items-center justify-between">
-                  <span className="flex items-center gap-1.5">
-                    <Upload className="w-4 h-4 text-railway-400" /> Upload Product Image (PNG, JPG, JPEG)
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-normal">Formats: .png, .jpg, .jpeg</span>
-                </label>
-
-                <div className="flex items-center gap-3">
-                  <label className="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-4 py-2 rounded-xl cursor-pointer transition-colors border border-slate-700 inline-flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-railway-400" /> Choose Image Files
+            <form onSubmit={handleSaveProduct} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto space-y-4 text-xs flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-slate-300 block mb-1 font-bold">Product Name</label>
                     <input
-                      type="file"
-                      accept="image/png, image/jpeg, image/jpg"
-                      multiple
-                      onChange={handleImageFileChange}
-                      className="hidden"
+                      type="text"
+                      placeholder="e.g. GADAR Tatkal Software"
+                      value={newProd.name}
+                      onChange={(e) => setNewProd({ ...newProd, name: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
+                      required
                     />
-                  </label>
-                  {isUploading && <span className="text-xs text-railway-400 animate-pulse font-bold">Uploading & processing image...</span>}
-                </div>
-
-                {/* Uploaded Image Previews */}
-                {uploadedImages.length > 0 && (
-                  <div className="flex items-center gap-3 overflow-x-auto pt-2">
-                    {uploadedImages.map((imgSrc, idx) => (
-                      <div key={idx} className="relative w-16 h-16 rounded-lg bg-slate-900 border border-slate-700 overflow-hidden flex-shrink-0">
-                        <img src={imgSrc} alt="Preview" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => removeUploadedImage(idx)}
-                          className="absolute top-0 right-0 bg-rose-600 text-white p-0.5 rounded-bl hover:bg-rose-500"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
                   </div>
-                )}
-
-                {/* Optional Image URL Input */}
-                <div className="pt-2 border-t border-slate-800/80">
-                  <label className="text-[11px] text-slate-400 block mb-1">Or Paste Image URL (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="https://images.unsplash.com/..."
-                    value={newProd.imageUrlInput}
-                    onChange={(e) => setNewProd({ ...newProd, imageUrlInput: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white placeholder-slate-600"
-                  />
+                  <div>
+                    <label className="text-slate-300 block mb-1 font-bold flex items-center justify-between">
+                      <span>Sort Key (alternateName)</span>
+                      <span className="text-[10px] text-amber-400 font-normal">e.g. 01, 02... 12</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="01"
+                      value={newProd.alternateName}
+                      onChange={(e) => setNewProd({ ...newProd, alternateName: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono placeholder-slate-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-300 block mb-1 font-bold flex items-center justify-between">
+                      <span>SKU Code</span>
+                      {editingProductSlug && <span className="text-[10px] text-amber-400 font-normal">Unique (Read-only)</span>}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. TTK-GADAR-01"
+                      value={newProd.sku}
+                      onChange={(e) => setNewProd({ ...newProd, sku: e.target.value })}
+                      disabled={Boolean(editingProductSlug)}
+                      className={`w-full border rounded-xl p-2.5 text-white placeholder-slate-500 uppercase font-mono ${
+                        editingProductSlug
+                          ? 'bg-slate-900/60 border-slate-800/80 text-slate-400 cursor-not-allowed'
+                          : 'bg-slate-950 border-slate-800'
+                      }`}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Visibility Checkbox */}
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-slate-300 block mb-1 font-bold">Category</label>
+                    <select
+                      value={newProd.categoryId}
+                      onChange={(e) => setNewProd({ ...newProd, categoryId: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-slate-300 block mb-1 font-bold">Price (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="145000"
+                      value={newProd.price}
+                      onChange={(e) => setNewProd({ ...newProd, price: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-300 block mb-1 font-bold">Stock Quantity</label>
+                    <input
+                      type="number"
+                      placeholder="15"
+                      value={newProd.stock}
+                      onChange={(e) => setNewProd({ ...newProd, stock: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <span className="font-bold text-white text-xs block">Visible in Product List</span>
-                  <span className="text-[10px] text-slate-400">If checked, product will be visible in customer catalog.</span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newProd.isVisible}
-                    onChange={(e) => setNewProd({ ...newProd, isVisible: e.target.checked })}
-                    className="sr-only peer"
+                  <label className="text-slate-300 block mb-1 font-bold">Description</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Detailed specifications, RDSO standards compliance..."
+                    value={newProd.description}
+                    onChange={(e) => setNewProd({ ...newProd, description: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
+                    required
                   />
-                  <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-railway-600"></div>
-                </label>
+                </div>
+
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Technical Specifications (One per line)</label>
+                  <textarea
+                    rows={2}
+                    placeholder="100-Ton Bending Capability&#10;RDSO Approved Design"
+                    value={newProd.features}
+                    onChange={(e) => setNewProd({ ...newProd, features: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-500"
+                  />
+                </div>
+
+                {/* Product Image Upload Section [png, jpg, jpeg] */}
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                  <label className="text-slate-200 font-bold flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Upload className="w-4 h-4 text-railway-400" /> Upload Product Image (PNG, JPG, JPEG)
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">Formats: .png, .jpg, .jpeg</span>
+                  </label>
+
+                  <div className="flex items-center gap-3">
+                    <label className="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-4 py-2 rounded-xl cursor-pointer transition-colors border border-slate-700 inline-flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-railway-400" /> Choose Image Files
+                      <input
+                        type="file"
+                        accept="image/png, image/jpeg, image/jpg"
+                        multiple
+                        onChange={handleImageFileChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {isUploading && <span className="text-xs text-railway-400 animate-pulse font-bold">Uploading & processing image...</span>}
+                  </div>
+
+                  {/* Uploaded Image Previews */}
+                  {uploadedImages.length > 0 && (
+                    <div className="flex items-center gap-3 overflow-x-auto pt-2">
+                      {uploadedImages.map((imgSrc, idx) => (
+                        <div key={idx} className="relative w-16 h-16 rounded-lg bg-slate-900 border border-slate-700 overflow-hidden flex-shrink-0">
+                          <img src={imgSrc} alt="Preview" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeUploadedImage(idx)}
+                            className="absolute top-0 right-0 bg-rose-600 text-white p-0.5 rounded-bl hover:bg-rose-500"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Optional Image URL Input */}
+                  <div className="pt-2 border-t border-slate-800/80">
+                    <label className="text-[11px] text-slate-400 block mb-1">Or Paste Image URL (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="https://images.unsplash.com/..."
+                      value={newProd.imageUrlInput}
+                      onChange={(e) => setNewProd({ ...newProd, imageUrlInput: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white placeholder-slate-600"
+                    />
+                  </div>
+                </div>
+
+                {/* Visibility Toggle Switch */}
+                <div className={`p-3.5 rounded-xl border flex items-center justify-between transition-colors ${
+                  newProd.isVisible 
+                    ? 'bg-emerald-950/40 border-emerald-500/40' 
+                    : 'bg-rose-950/40 border-rose-500/40'
+                }`}>
+                  <div>
+                    <span className="font-bold text-white text-xs flex items-center gap-1.5">
+                      <span>Visible in Product List</span>
+                      {newProd.isVisible ? (
+                        <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                          VISIBLE (ON)
+                        </span>
+                      ) : (
+                        <span className="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                          HIDDEN (OFF)
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                      {newProd.isVisible 
+                        ? 'Product is active and visible in the customer catalog.' 
+                        : 'Product is hidden from customer catalog view.'}
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={newProd.isVisible}
+                      onChange={(e) => setNewProd({ ...newProd, isVisible: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className={`w-11 h-6 rounded-full transition-colors relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all ${
+                      newProd.isVisible
+                        ? 'bg-emerald-500 after:translate-x-5 shadow-lg shadow-emerald-500/30'
+                        : 'bg-rose-600 after:translate-x-0 shadow-lg shadow-rose-600/30'
+                    }`} />
+                  </label>
+                </div>
               </div>
 
-              <div className="flex gap-2 justify-end pt-2 border-t border-slate-800">
+              <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-end gap-3 bg-slate-900 flex-shrink-0">
                 <button
                   type="button"
                   disabled={isSubmittingProduct}
@@ -1768,14 +1840,14 @@ export default function AdminDashboardPage() {
                     setShowAddProduct(false);
                     setEditingProductSlug(null);
                   }}
-                  className="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 disabled:opacity-50 transition-colors text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingProduct}
-                  className="px-6 py-2.5 bg-railway-600 hover:bg-railway-500 text-white rounded-xl font-bold disabled:opacity-50 transition-all shadow-lg shadow-railway-600/30 inline-flex items-center gap-1.5"
+                  className="px-6 py-2.5 bg-railway-600 hover:bg-railway-500 text-white rounded-xl font-bold disabled:opacity-50 transition-all shadow-lg shadow-railway-600/30 inline-flex items-center gap-1.5 text-xs"
                 >
                   {isSubmittingProduct ? (
                     <>

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { slugify } from '@/lib/utils';
 import { productsCache, getCatSlugMap, setCatSlugMap, clearProductsCache } from '@/lib/cache';
+import { saveImageFile } from '@/lib/storage';
 
 const CACHE_TTL_MS = 60000; // 60 seconds cache
 
@@ -36,15 +37,20 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    // Deterministic Normalized Cache Key
-    const cacheKey = searchParams.toString() || 'default';
+    const startTime = performance.now();
+    const normalizedSort = sort || 'newest';
+    const normalizedPage = page || 1;
+    const normalizedLimit = limit || 50;
+    const cacheKey = `p_${normalizedPage}_l_${normalizedLimit}_s_${normalizedSort}_c_${category || ''}_b_${brand || ''}_q_${search || ''}_p_${minPrice || ''}_${maxPrice || ''}_r_${minRating || ''}_f_${featured || ''}_pop_${popular || ''}_del_${deletedOnly || ''}_inc_${includeDeleted || ''}_adm_${adminView || ''}`;
+
     const now = Date.now();
     const cached = productsCache.get(cacheKey);
     if (cached && now - cached.timestamp < CACHE_TTL_MS) {
       return NextResponse.json(cached.data, {
         headers: {
           'X-Cache': 'HIT',
-          'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30',
+          'X-Response-Time': `${Math.round(performance.now() - startTime)}ms`,
+          'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
         },
       });
     }
@@ -131,6 +137,9 @@ export async function GET(req: NextRequest) {
           alternateName: true,
           slug: true,
           sku: true,
+          categoryId: true,
+          description: true,
+          features: true,
           price: true,
           discount: true,
           stock: true,
@@ -142,6 +151,7 @@ export async function GET(req: NextRequest) {
           isVisible: true,
           isFeatured: true,
           isPopular: true,
+          is_deleted: true,
           createdAt: true,
           category: {
             select: {
@@ -158,7 +168,6 @@ export async function GET(req: NextRequest) {
             },
           },
           images: {
-            take: 1,
             select: {
               id: true,
               url: true,
@@ -187,7 +196,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(responsePayload, {
       headers: {
         'X-Cache': 'MISS',
-        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30',
+        'X-Response-Time': `${Math.round(performance.now() - startTime)}ms`,
+        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
       },
     });
   } catch (error: any) {
@@ -200,7 +210,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
     if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 });
     }
 
     const body = await req.json();
@@ -250,7 +260,7 @@ export async function POST(req: NextRequest) {
         is_deleted: 0,
         images: {
           create: (images || []).map((img: string, idx: number) => ({
-            url: img,
+            url: saveImageFile(img, sku),
             alt: name,
             isPrimary: idx === 0,
           })),

@@ -165,7 +165,7 @@ export function Navbar() {
         {/* Navigation Links (Desktop) */}
         <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-700 dark:text-slate-300">
           <Link href="/products" className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
-            All 12 Softwares
+            All Softwares
           </Link>
           <Link href="/products?category=tatkal-booking-software" className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
             Tatkal Software
@@ -174,7 +174,7 @@ export function Navbar() {
             Browser Extensions
           </Link>
           <a
-            href="https://whatsapp.com/channel/0029Vb8ikne7Noa8Auu2yp0T"
+            href="https://wa.me/918521012621"
             target="_blank"
             rel="noopener noreferrer"
             className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors flex items-center gap-1 font-bold"
@@ -196,7 +196,8 @@ export function Navbar() {
 
           {/* Wishlist (Desktop/Tablet) */}
           <Link
-            href="/account?tab=wishlist"
+            href={user ? "/account?tab=wishlist" : "/login"}
+            title={user ? "My Wishlist" : "Sign In to View Wishlist"}
             className="hidden sm:flex relative p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <Heart className="w-5 h-5" />
@@ -329,7 +330,7 @@ export function Navbar() {
 
           <div className="flex flex-col gap-2 pt-2 text-xs">
             <Link href="/products" onClick={() => setIsMobileMenuOpen(false)} className="font-bold text-amber-600 dark:text-amber-400 py-2">
-              All 12 Softwares
+              All Softwares
             </Link>
             <Link href="/products?category=tatkal-booking-software" onClick={() => setIsMobileMenuOpen(false)} className="font-semibold text-slate-700 dark:text-slate-300 py-2">
               Tatkal Booking Software
@@ -337,12 +338,12 @@ export function Navbar() {
             <Link href="/products?category=tatkal-browser-extensions" onClick={() => setIsMobileMenuOpen(false)} className="font-semibold text-slate-700 dark:text-slate-300 py-2">
               Browser Extensions
             </Link>
-            <Link href="/account?tab=wishlist" onClick={() => setIsMobileMenuOpen(false)} className="font-semibold text-rose-600 dark:text-rose-400 py-2 flex items-center justify-between">
+            <Link href={user ? "/account?tab=wishlist" : "/login"} onClick={() => setIsMobileMenuOpen(false)} className="font-semibold text-rose-600 dark:text-rose-400 py-2 flex items-center justify-between">
               <span>My Wishlist</span>
               {wishlistIds.length > 0 && <span className="bg-rose-500 text-white px-2 py-0.5 rounded-full text-[10px]">{wishlistIds.length}</span>}
             </Link>
             <a
-              href="https://whatsapp.com/channel/0029Vb8ikne7Noa8Auu2yp0T"
+              href="https://wa.me/918521012621"
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold text-emerald-600 dark:text-emerald-400 py-2"

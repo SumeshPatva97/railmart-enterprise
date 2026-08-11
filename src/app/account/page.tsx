@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -46,7 +47,7 @@ function AccountContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') || 'orders';
 
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState(initialTab);
 
   const [orders, setOrders] = useState<any[]>([]);
@@ -335,8 +336,18 @@ function AccountContent() {
     }
   };
 
-  if (!user) {
-    return <div className="min-h-screen bg-slate-950 py-20 text-center text-white">Please sign in to view your account.</div>;
+  useEffect(() => {
+    if (!authLoading && !user) {
+      window.location.href = '/login';
+    }
+  }, [user, authLoading]);
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   const isAdminUser = user.role === 'ADMIN';
@@ -550,9 +561,23 @@ function AccountContent() {
                       ))}
                     </div>
 
-                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                      <span className="text-slate-400">Payment: <strong className="text-white">{ord.paymentMethod}</strong> ({ord.paymentStatus})</span>
-                      <span className="text-sm font-black text-railway-400">Total: {formatCurrency(ord.totalAmount)}</span>
+                    <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div className="space-y-0.5">
+                        <span className="text-slate-400 block">
+                          Payment: <strong className="text-white">{ord.paymentMethod}</strong> ({ord.paymentStatus})
+                        </span>
+                        {ord.payments && ord.payments.length > 0 && ord.payments[0].transactionId && (
+                          <span className="text-[11px] font-mono text-railway-400 block font-semibold">
+                            UTR Ref: {ord.payments[0].transactionId}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Link href={`/orders/${ord.id}`} className="text-xs font-bold text-railway-400 hover:underline">
+                          View Order Details →
+                        </Link>
+                        <span className="text-sm font-black text-railway-400">Total: {formatCurrency(ord.totalAmount)}</span>
+                      </div>
                     </div>
                   </div>
                 );

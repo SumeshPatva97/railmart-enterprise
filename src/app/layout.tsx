@@ -5,6 +5,7 @@ import { CartProvider } from '@/context/CartContext';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
+import { WhatsAppButton } from '@/components/common/WhatsAppButton';
 
 export const metadata: Metadata = {
   title: 'D ENTERPRISE TEAM | Official Tatkal Software & Extension Portal',
@@ -36,6 +37,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
             <Footer />
             <ScrollToTop />
+            <WhatsAppButton />
           </CartProvider>
         </AuthProvider>
       </body>

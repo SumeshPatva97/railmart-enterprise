@@ -71,8 +71,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const ids = (wishData.wishlist || []).map((w: any) => w.productId);
         setWishlistIds(ids);
       }
-    } catch (err) {
-      console.error('Failed to load cart/wishlist', err);
+    } catch (err: any) {
+      if (err?.message !== 'Failed to fetch' && err?.name !== 'AbortError') {
+        console.error('Failed to load cart/wishlist', err);
+      }
     }
   };
 

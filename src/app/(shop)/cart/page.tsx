@@ -107,12 +107,6 @@ export default function CartPage() {
                   <span className="text-slate-400">Subtotal:</span>
                   <span className="font-bold text-white">{formatCurrency(totals.subtotal)}</span>
                 </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-slate-400">Insured Freight Delivery Fee:</span>
-                  <span className="font-bold text-white">
-                    {totals.shippingFee === 0 ? 'FREE' : formatCurrency(totals.shippingFee)}
-                  </span>
-                </div>
 
                 <div className="flex justify-between pt-3 border-t border-slate-800 text-sm font-black text-white">
                   <span>Grand Total:</span>

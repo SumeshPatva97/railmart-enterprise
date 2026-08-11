@@ -11,6 +11,7 @@ import {
   Plus,
   MessageSquare,
   FileSpreadsheet,
+  X,
 } from 'lucide-react';
 
 export default function EnterpriseCRMPage() {
@@ -313,50 +314,62 @@ export default function EnterpriseCRMPage() {
       {/* Add Lead Modal */}
       {showAddLead && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-md w-full space-y-4">
-            <h3 className="text-base font-bold text-white">Capture Railway Lead</h3>
-            <form onSubmit={handleCreateLead} className="space-y-3 text-xs">
-              <div>
-                <label className="text-slate-400 block mb-1">Contractor Name</label>
-                <input
-                  type="text"
-                  value={newLead.name}
-                  onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
+              <h3 className="text-base font-bold text-white">Capture Railway Lead</h3>
+              <button
+                type="button"
+                onClick={() => setShowAddLead(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                title="Close Modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateLead} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto space-y-3 text-xs flex-1">
                 <div>
-                  <label className="text-slate-400 block mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={newLead.email}
-                    onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-400 block mb-1">Phone</label>
+                  <label className="text-slate-400 block mb-1">Contractor Name</label>
                   <input
                     type="text"
-                    value={newLead.phone}
-                    onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+                    value={newLead.name}
+                    onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
                     required
                   />
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-slate-400 block mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={newLead.email}
+                      onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-400 block mb-1">Phone</label>
+                    <input
+                      type="text"
+                      value={newLead.phone}
+                      onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2 justify-end pt-2">
+              <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-end gap-3 bg-slate-900 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowAddLead(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold"
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 transition-colors text-xs"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold">
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all text-xs">
                   Save Lead
                 </button>
               </div>
@@ -368,38 +381,50 @@ export default function EnterpriseCRMPage() {
       {/* Staff Reply Modal */}
       {activeTicket && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-md w-full space-y-4">
-            <h3 className="text-base font-bold text-white">Staff Reply for #{activeTicket.ticketNumber}</h3>
-            <form onSubmit={handleSendTicketReply} className="space-y-3 text-xs">
-              <div>
-                <label className="text-slate-400 block mb-1">Customer Reply</label>
-                <textarea
-                  rows={3}
-                  value={replyMsg}
-                  onChange={(e) => setReplyMsg(e.target.value)}
-                  placeholder="Type visible message to customer..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
-                />
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
+              <h3 className="text-base font-bold text-white">Staff Reply for #{activeTicket.ticketNumber}</h3>
+              <button
+                type="button"
+                onClick={() => setActiveTicket(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                title="Close Modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSendTicketReply} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto space-y-3 text-xs flex-1">
+                <div>
+                  <label className="text-slate-400 block mb-1">Customer Reply</label>
+                  <textarea
+                    rows={3}
+                    value={replyMsg}
+                    onChange={(e) => setReplyMsg(e.target.value)}
+                    placeholder="Type visible message to customer..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-amber-400 block mb-1 font-bold">Internal Staff Note (Private)</label>
+                  <textarea
+                    rows={2}
+                    value={staffNote}
+                    onChange={(e) => setStaffNote(e.target.value)}
+                    placeholder="Note for internal staff audit only..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-amber-400 block mb-1 font-bold">Internal Staff Note (Private)</label>
-                <textarea
-                  rows={2}
-                  value={staffNote}
-                  onChange={(e) => setStaffNote(e.target.value)}
-                  placeholder="Note for internal staff audit only..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
-                />
-              </div>
-              <div className="flex gap-2 justify-end pt-2">
+              <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-end gap-3 bg-slate-900 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setActiveTicket(null)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold"
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 transition-colors text-xs"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold">
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all text-xs">
                   Send Response
                 </button>
               </div>

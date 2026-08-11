@@ -6,8 +6,8 @@ import { UserProfile } from '@/types';
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
-  login: (data: any) => Promise<{ success: boolean; error?: string }>;
-  register: (data: any) => Promise<{ success: boolean; error?: string }>;
+  login: (data: any) => Promise<{ success: boolean; error?: string; user?: UserProfile }>;
+  register: (data: any) => Promise<{ success: boolean; error?: string; user?: UserProfile }>;
   verifyOtp: (email: string, otp: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       if (res.ok) {
         setUser(data.user);
-        return { success: true };
+        return { success: true, user: data.user };
       }
       return { success: false, error: data.error };
     } catch (err: any) {
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       if (res.ok) {
         setUser(data.user);
-        return { success: true };
+        return { success: true, user: data.user };
       }
       return { success: false, error: data.error };
     } catch (err: any) {

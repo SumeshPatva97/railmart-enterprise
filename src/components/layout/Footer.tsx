@@ -3,8 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { Send } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { getWhatsAppUrl } from '@/lib/utils';
 
 export function Footer() {
+  const { user } = useAuth();
+  const whatsappUrl = getWhatsAppUrl(user?.email);
+
   return (
     <footer className="bg-slate-950 text-slate-400 border-t border-slate-900 py-12">
       {/* Main Footer Content */}
@@ -26,12 +31,12 @@ export function Footer() {
           </p>
           <div className="pt-2">
             <a
-              href="https://whatsapp.com/channel/0029Vb8ikne7Noa8Auu2yp0T"
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-600/20"
             >
-              <Send className="w-4 h-4" /> Join Daily Update WhatsApp Channel
+              <Send className="w-4 h-4" /> WhatsApp Support (+91 8521012621)
             </a>
           </div>
         </div>
@@ -67,7 +72,7 @@ export function Footer() {
           <h4 className="text-sm font-bold text-white mb-4">Contact Team</h4>
           <address className="not-italic text-xs leading-relaxed space-y-2 text-slate-400">
             <p className="text-amber-400 font-bold text-xs uppercase tracking-wider">SUPER MASTER BHIMDADA</p>
-            <p className="text-emerald-400 font-bold">Contact: +66805849689</p>
+            <p className="text-emerald-400 font-bold">WhatsApp / Call: +91 8521012621</p>
             <p className="text-slate-300">Support Hours: 7:30 AM to 12:00 AM</p>
             <p className="text-slate-400">Services: Software, VPS, IP, IRCTC ID</p>
           </address>
@@ -78,7 +83,7 @@ export function Footer() {
         <p>&copy; {new Date().getFullYear()} D ENTERPRISE TEAM. All Rights Reserved.</p>
         <div className="flex items-center gap-6">
           <span className="text-slate-400">Domain: denterpriese.softvps.in</span>
-          <a href="https://whatsapp.com/channel/0029Vb8ikne7Noa8Auu2yp0T" target="_blank" rel="noreferrer" className="hover:text-emerald-400 transition-colors">WhatsApp Channel</a>
+          <a href={whatsappUrl} target="_blank" rel="noreferrer" className="hover:text-emerald-400 transition-colors">WhatsApp Support</a>
         </div>
       </div>
     </footer>

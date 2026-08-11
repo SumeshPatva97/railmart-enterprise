@@ -11,6 +11,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name, email, and password are required.' }, { status: 400 });
     }
 
+    const cleanedPhone = phone ? phone.replace(/\D/g, '') : '';
+    if (!cleanedPhone || cleanedPhone.length !== 10) {
+      return NextResponse.json({ error: 'Mobile phone number must be exactly 10 digits (e.g. 9876543210).' }, { status: 400 });
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
@@ -30,8 +35,7 @@ export async function POST(req: NextRequest) {
         phone,
         passwordHash,
         role: 'CUSTOMER',
-        otpCode,
-        otpExpiresAt,
+        emailVerified: true,
         cart: {
           create: {},
         },

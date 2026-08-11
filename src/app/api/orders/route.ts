@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
           },
         },
         user: { select: { name: true, email: true, phone: true } },
+        payments: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -48,10 +49,19 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { shippingAddress, billingAddress, paymentMethod, couponCode, notes } = body;
+    const { shippingAddress, billingAddress, paymentMethod, couponCode, notes, utrNumber, transactionId } = body;
 
     if (!shippingAddress || !paymentMethod) {
       return NextResponse.json({ error: 'Shipping address and payment method are required.' }, { status: 400 });
+    }
+
+    const effectiveUtr = utrNumber || transactionId || null;
+
+    if ((paymentMethod === 'UPI_QR' || paymentMethod === 'BANK_TRANSFER') && !effectiveUtr) {
+      return NextResponse.json(
+        { error: 'UTR / Transaction Reference ID is required for online payments.' },
+        { status: 400 }
+      );
     }
 
     // Get user cart
@@ -100,6 +110,12 @@ export async function POST(req: NextRequest) {
     );
 
     const orderNumber = `RM-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+    const initialPaymentStatus = paymentMethod === 'COD' ? 'PENDING' : 'PENDING_VERIFICATION';
+
+    let orderNotes = notes || '';
+    if (effectiveUtr) {
+      orderNotes = `[Payment UTR/Txn Ref: ${effectiveUtr}] ${orderNotes}`.trim();
+    }
 
     const order = await prisma.order.create({
       data: {
@@ -114,8 +130,8 @@ export async function POST(req: NextRequest) {
         shippingAddress: typeof shippingAddress === 'string' ? shippingAddress : JSON.stringify(shippingAddress),
         billingAddress: typeof billingAddress === 'string' ? billingAddress : JSON.stringify(billingAddress || shippingAddress),
         paymentMethod,
-        paymentStatus: paymentMethod === 'COD' ? 'PENDING' : 'PENDING',
-        notes: notes || null,
+        paymentStatus: initialPaymentStatus,
+        notes: orderNotes || null,
         items: {
           create: cart.items.map((i) => {
             const finalPrice = i.product.price * (1 - i.product.discount / 100);
@@ -127,11 +143,25 @@ export async function POST(req: NextRequest) {
             };
           }),
         },
+        payments: {
+          create: {
+            paymentProvider: paymentMethod,
+            transactionId: effectiveUtr,
+            amount: totals.totalAmount,
+            status: initialPaymentStatus,
+            rawResponse: JSON.stringify({
+              paymentMethod,
+              utrNumber: effectiveUtr,
+              submittedAt: new Date().toISOString(),
+            }),
+          },
+        },
       },
       include: {
         items: {
           include: { product: true },
         },
+        payments: true,
       },
     });
 

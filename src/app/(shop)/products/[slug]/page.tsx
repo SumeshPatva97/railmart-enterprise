@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { ProductType, ReviewType } from '@/types';
 import { formatCurrency } from '@/lib/utils';
@@ -527,9 +528,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Breadcrumb */}
         <div className="text-xs text-slate-400 mb-6 flex items-center gap-2">
-          <span>D Enterprise Team</span>
+          <Link href="/" className="hover:text-amber-400 transition-colors">
+            D Enterprise Team
+          </Link>
           <span>/</span>
-          <span className="text-amber-400 font-semibold">{product.category?.name || 'Tatkal Software'}</span>
+          <Link
+            href={`/products?category=${product.category?.slug || 'tatkal-booking-software'}`}
+            className="text-amber-400 font-semibold hover:underline transition-all"
+          >
+            {product.category?.name || 'Tatkal Booking Software'}
+          </Link>
           <span>/</span>
           <span className="text-slate-200">{product.name}</span>
         </div>
@@ -538,33 +546,33 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Left Column: Product Image */}
           <div className="space-y-4">
-            <div className="relative h-96 sm:h-[450px] bg-slate-900 rounded-3xl overflow-hidden border border-amber-500/30 flex items-center justify-center p-6 shadow-2xl">
+            <div className="relative h-96 sm:h-[450px] bg-slate-900 rounded-3xl overflow-hidden border border-amber-500/30 flex items-center justify-center p-6 shadow-2xl group cursor-zoom-in">
               <img
                 src={selectedImg || 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80'}
                 alt={product.name}
-                className="max-h-full max-w-full object-contain rounded-2xl shadow-lg"
+                className="max-h-full max-w-full object-contain rounded-2xl shadow-lg transition-transform duration-500 ease-out group-hover:scale-125"
               />
               <button
                 onClick={() => toggleWishlist(product.id)}
                 className={`absolute top-4 right-4 p-3 rounded-full border backdrop-blur-md transition-all ${
                   isFav
-                    ? 'bg-rose-500/20 border-rose-500 text-rose-500'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:text-rose-400'
+                    ? 'bg-rose-500/20 border-rose-500/50 text-rose-500'
+                    : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
                 }`}
               >
-                <Heart className={`w-5 h-5 ${isFav ? 'fill-current' : ''}`} />
+                <Heart className={`w-5 h-5 ${isFav ? 'fill-rose-500' : ''}`} />
               </button>
             </div>
 
-            {/* Thumbnails */}
+            {/* Thumbnail Gallery */}
             {product.images && product.images.length > 1 && (
               <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                {product.images.map((img) => (
+                {product.images.map((img: any, idx: number) => (
                   <button
-                    key={img.id}
+                    key={idx}
                     onClick={() => setSelectedImg(img.url)}
-                    className={`w-20 h-20 rounded-xl bg-slate-900 border-2 overflow-hidden flex-shrink-0 transition-all ${
-                      selectedImg === img.url ? 'border-amber-400' : 'border-slate-800 opacity-60 hover:opacity-100'
+                    className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-slate-900 ${
+                      selectedImg === img.url ? 'border-amber-400 scale-105' : 'border-slate-800 opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={img.url} alt="thumbnail" className="w-full h-full object-cover" />
@@ -578,9 +586,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           <div className="space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold px-3 py-1 rounded-full uppercase">
-                  {product.category?.name || 'Tatkal Software'}
-                </span>
+                <Link
+                  href={`/products?category=${product.category?.slug || 'tatkal-booking-software'}`}
+                  className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold px-3 py-1 rounded-full uppercase hover:bg-amber-500/20 transition-colors"
+                >
+                  {product.category?.name || 'Tatkal Booking Software'}
+                </Link>
                 <span className="text-xs text-slate-400">SKU: {product.sku}</span>
               </div>
 

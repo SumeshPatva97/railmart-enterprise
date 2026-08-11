@@ -45,12 +45,12 @@ export function HeroBanner() {
             </Link>
 
             <a
-              href="https://whatsapp.com/channel/0029Vb8ikne7Noa8Auu2yp0T"
+              href="https://wa.me/918521012621"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 text-sm font-semibold px-6 py-3.5 rounded-xl transition-colors flex items-center gap-2"
             >
-              Join WhatsApp Channel
+              Chat on WhatsApp (+91 8521012621)
             </a>
           </div>
 

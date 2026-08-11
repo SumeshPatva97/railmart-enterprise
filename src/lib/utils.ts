@@ -46,18 +46,14 @@ export function calculateCartTotals(
   couponDiscount: { type: 'PERCENTAGE' | 'FIXED'; value: number; maxDiscount?: number } | null = null
 ): CartCalculation {
   let subtotal = 0;
-  let maxDeliveryFee = 0;
 
   items.forEach((item) => {
     const itemSubtotal = item.price * item.quantity;
     subtotal += itemSubtotal;
-
-    if ((item.deliveryCharges ?? 0) > maxDeliveryFee) {
-      maxDeliveryFee = item.deliveryCharges ?? 0;
-    }
   });
 
-  const shippingFee = subtotal > 100000 ? 0 : maxDeliveryFee || (subtotal > 0 ? 500 : 0);
+  // Freight Fee / Delivery Fee removed (0)
+  const shippingFee = 0;
 
   let discountAmount = 0;
   if (couponDiscount) {
@@ -75,14 +71,26 @@ export function calculateCartTotals(
     discountAmount = subtotal;
   }
 
-  // GST Removed - Total = Subtotal + Shipping - Discount
-  const totalAmount = Math.max(0, subtotal + shippingFee - discountAmount);
+  const totalAmount = Math.max(0, subtotal - discountAmount);
 
   return {
     subtotal: Math.round(subtotal * 100) / 100,
     taxAmount: 0,
-    shippingFee: Math.round(shippingFee * 100) / 100,
+    shippingFee: 0,
     discountAmount: Math.round(discountAmount * 100) / 100,
     totalAmount: Math.round(totalAmount * 100) / 100,
   };
+}
+
+export function getWhatsAppUrl(userEmail?: string, customText?: string): string {
+  const phone = '918521012621';
+  let message = customText || 'Hi, I’m interested in this opportunity. Please contact me and share the relevant details.';
+  
+  if (userEmail) {
+    message += `\n\nYou can also reach me at: ${userEmail}`;
+  }
+  
+  message += `\n\nThank you!`;
+  
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }

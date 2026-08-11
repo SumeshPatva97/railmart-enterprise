@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { clearProductsCache } from '@/lib/cache';
+import { saveImageFile } from '@/lib/storage';
 
 interface SlugCacheEntry {
   data: any;
@@ -86,14 +87,14 @@ export async function PUT(
 
     // If new images provided, update product images
     if (body.images && Array.isArray(body.images) && body.images.length > 0) {
-      const existingProduct = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
+      const existingProduct = await prisma.product.findUnique({ where: { slug }, select: { id: true, sku: true } });
       if (existingProduct) {
         // Remove old images and add new ones
         await prisma.productImage.deleteMany({ where: { productId: existingProduct.id } });
         await prisma.productImage.createMany({
           data: body.images.map((imgUrl: string, idx: number) => ({
             productId: existingProduct.id,
-            url: imgUrl,
+            url: saveImageFile(imgUrl, existingProduct.sku || 'general'),
             alt: body.name || 'Product Image',
             isPrimary: idx === 0,
           })),
