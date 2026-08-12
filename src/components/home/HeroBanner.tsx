@@ -35,12 +35,12 @@ export function HeroBanner() {
             12 High-Speed IRCTC Tatkal Software & Browser Extensions including GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.
           </p>
 
-          <div className="flex flex-wrap items-center gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-2 w-full">
             <Link
               href="/products"
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl transition-all shadow-xl shadow-amber-500/20 flex items-center gap-2 group"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-extrabold px-7 py-3.5 rounded-xl transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 group w-full sm:w-auto"
             >
-              <span>Explore 12 Tatkal Softwares</span>
+              <span>Explore Tatkal Softwares</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
 
@@ -48,7 +48,7 @@ export function HeroBanner() {
               href="https://wa.me/918521012621"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 text-sm font-semibold px-6 py-3.5 rounded-xl transition-colors flex items-center gap-2"
+              className="bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 text-sm font-semibold px-6 py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               Chat on WhatsApp (+91 8521012621)
             </a>

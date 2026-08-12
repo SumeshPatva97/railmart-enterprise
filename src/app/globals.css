@@ -254,3 +254,67 @@ html.dark {
   background: #026fc3;
   border-radius: 4px;
 }
+
+/* =========================================================
+   MOBILE RESPONSIVE UTILITIES & CONTAINER FIXES
+   ========================================================= */
+
+/* Prevent flex children from causing horizontal scroll */
+.min-w-0-flex {
+  min-width: 0 !important;
+}
+
+/* Responsive Table Wrapper */
+.responsive-table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  border-radius: 0.75rem;
+}
+
+/* Hide Scrollbar for Horizontal Touch Tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe Area Insets for Modern Mobile Devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 1rem);
+}
+
+/* Responsive Fluid Heading Utilities */
+.text-fluid-h1 {
+  font-size: clamp(1.75rem, 4vw + 1rem, 3.25rem);
+  line-height: 1.15;
+}
+
+.text-fluid-h2 {
+  font-size: clamp(1.35rem, 3vw + 0.8rem, 2.25rem);
+  line-height: 1.2;
+}
+
+/* Mobile Bottom Sheet Animation */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

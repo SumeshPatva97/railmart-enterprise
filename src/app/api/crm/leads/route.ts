@@ -64,14 +64,19 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 });
     }
 
-    const { id, status, notes, assignedTo } = await req.json();
+    const { id, name, email, phone, company, source, status, notes, assignedTo } = await req.json();
     if (!id) return NextResponse.json({ error: 'Lead ID required' }, { status: 400 });
 
     const lead = await prisma.lead.update({
       where: { id },
       data: {
+        name: name || undefined,
+        email: email || undefined,
+        phone: phone || undefined,
+        company: company !== undefined ? company : undefined,
+        source: source || undefined,
         status: status || undefined,
-        notes: notes || undefined,
+        notes: notes !== undefined ? notes : undefined,
         assignedTo: assignedTo || undefined,
       },
     });

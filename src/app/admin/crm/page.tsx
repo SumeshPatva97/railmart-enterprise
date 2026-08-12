@@ -9,6 +9,7 @@ import {
   Calendar,
   Download,
   Plus,
+  Edit,
   MessageSquare,
   FileSpreadsheet,
   X,
@@ -22,8 +23,9 @@ export default function EnterpriseCRMPage() {
   const [activeTab, setActiveTab] = useState<'leads' | 'tickets' | 'reminders' | 'reports'>('leads');
   const [loading, setLoading] = useState(true);
 
-  // Add lead modal
+  // Add / Edit lead modal
   const [showAddLead, setShowAddLead] = useState(false);
+  const [editingLead, setEditingLead] = useState<any | null>(null);
   const [newLead, setNewLead] = useState({
     name: '',
     email: '',
@@ -76,18 +78,28 @@ export default function EnterpriseCRMPage() {
     }
   };
 
-  const handleCreateLead = async (e: React.FormEvent) => {
+  const handleSaveLead = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/crm/leads', {
-        method: 'POST',
+      const isEdit = Boolean(editingLead);
+      const url = '/api/crm/leads';
+      const method = isEdit ? 'PUT' : 'POST';
+      const bodyData = isEdit ? { id: editingLead.id, ...newLead } : newLead;
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newLead),
+        body: JSON.stringify(bodyData),
       });
       if (res.ok) {
         const data = await res.json();
-        setLeads((prev) => [data.lead, ...prev]);
+        if (isEdit) {
+          setLeads((prev) => prev.map((l) => (l.id === editingLead.id ? { ...l, ...data.lead } : l)));
+        } else {
+          setLeads((prev) => [data.lead, ...prev]);
+        }
         setShowAddLead(false);
+        setEditingLead(null);
         setNewLead({ name: '', email: '', phone: '', company: '', source: 'Website Inquiry', notes: '' });
       }
     } catch (err) {
@@ -137,35 +149,35 @@ export default function EnterpriseCRMPage() {
         </div>
 
         {/* Tabs Navigation (Responsive scrollable) */}
-        <div className="flex items-center gap-2 border-b border-slate-800 mb-8 overflow-x-auto pb-2 scrollbar-none whitespace-nowrap">
+        <div className="flex items-center gap-2 border-b border-slate-800 mb-8 overflow-x-auto pb-2 no-scrollbar whitespace-nowrap min-w-0">
           <button
             onClick={() => setActiveTab('leads')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'leads' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 flex-shrink-0 ${
+              activeTab === 'leads' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-slate-400 hover:text-white bg-slate-900/40'
             }`}
           >
             <UserCheck className="w-4 h-4" /> Lead Management ({leads.length})
           </button>
           <button
             onClick={() => setActiveTab('tickets')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'tickets' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 flex-shrink-0 ${
+              activeTab === 'tickets' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-slate-400 hover:text-white bg-slate-900/40'
             }`}
           >
             <HelpCircle className="w-4 h-4" /> Support Desk ({tickets.length})
           </button>
           <button
             onClick={() => setActiveTab('reminders')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'reminders' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 flex-shrink-0 ${
+              activeTab === 'reminders' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-slate-400 hover:text-white bg-slate-900/40'
             }`}
           >
             <Calendar className="w-4 h-4" /> Reminders Calendar ({reminders.length})
           </button>
           <button
             onClick={() => setActiveTab('reports')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'reports' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 flex-shrink-0 ${
+              activeTab === 'reports' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-slate-400 hover:text-white bg-slate-900/40'
             }`}
           >
             <FileSpreadsheet className="w-4 h-4" /> Export CSV Reports
@@ -179,50 +191,72 @@ export default function EnterpriseCRMPage() {
               <h3 className="text-sm font-bold text-white">Railway Contractor Leads & Inquiries</h3>
               <button
                 onClick={() => setShowAddLead(true)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 w-full sm:w-auto justify-center shadow-lg shadow-emerald-600/20"
               >
                 <Plus className="w-4 h-4" /> Capture New Lead
               </button>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto w-full shadow-xl">
-              <table className="w-full text-left text-xs text-slate-300 min-w-[640px]">
-                <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
-                  <tr>
-                    <th className="p-4">Contractor / Lead</th>
-                    <th className="p-4">Company</th>
-                    <th className="p-4">Contact</th>
-                    <th className="p-4">Pipeline Status</th>
-                    <th className="p-4">Source</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800">
-                  {leads.map((l) => (
-                    <tr key={l.id} className="hover:bg-slate-800/40">
-                      <td className="p-4 font-bold text-white">{l.name}</td>
-                      <td className="p-4">{l.company || 'Individual Contractor'}</td>
-                      <td className="p-4">
-                        <p>{l.email}</p>
-                        <p className="text-[10px] text-slate-400">{l.phone}</p>
-                      </td>
-                      <td className="p-4">
-                        <select
-                          value={l.status}
-                          onChange={(e) => handleUpdateLeadStatus(l.id, e.target.value)}
-                          className="bg-slate-950 border border-slate-800 text-[11px] font-bold text-white px-2 py-1 rounded-lg"
-                        >
-                          <option value="NEW">NEW</option>
-                          <option value="CONTACTED">CONTACTED</option>
-                          <option value="QUALIFIED">QUALIFIED</option>
-                          <option value="CONVERTED">CONVERTED</option>
-                          <option value="LOST">LOST</option>
-                        </select>
-                      </td>
-                      <td className="p-4 text-slate-400">{l.source}</td>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+              <div className="responsive-table-container">
+                <table className="w-full text-left text-xs text-slate-300 min-w-[700px]">
+                  <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
+                    <tr>
+                      <th className="p-4">Contractor / Lead</th>
+                      <th className="p-4">Company</th>
+                      <th className="p-4">Contact</th>
+                      <th className="p-4">Pipeline Status</th>
+                      <th className="p-4">Source</th>
+                      <th className="p-4 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {leads.map((l) => (
+                      <tr key={l.id} className="hover:bg-slate-800/40">
+                        <td className="p-4 font-bold text-white">{l.name}</td>
+                        <td className="p-4">{l.company || 'Individual Contractor'}</td>
+                        <td className="p-4">
+                          <p>{l.email}</p>
+                          <p className="text-[10px] text-slate-400">{l.phone}</p>
+                        </td>
+                        <td className="p-4">
+                          <select
+                            value={l.status}
+                            onChange={(e) => handleUpdateLeadStatus(l.id, e.target.value)}
+                            className="bg-slate-950 border border-slate-800 text-[11px] font-bold text-white px-2 py-1 rounded-lg"
+                          >
+                            <option value="NEW">NEW</option>
+                            <option value="CONTACTED">CONTACTED</option>
+                            <option value="QUALIFIED">QUALIFIED</option>
+                            <option value="CONVERTED">CONVERTED</option>
+                            <option value="LOST">LOST</option>
+                          </select>
+                        </td>
+                        <td className="p-4 text-slate-400">{l.source}</td>
+                        <td className="p-4 text-right">
+                          <button
+                            onClick={() => {
+                              setEditingLead(l);
+                              setNewLead({
+                                name: l.name,
+                                email: l.email,
+                                phone: l.phone,
+                                company: l.company || '',
+                                source: l.source || 'Website Inquiry',
+                                notes: l.notes || '',
+                              });
+                              setShowAddLead(true);
+                            }}
+                            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg transition-colors inline-flex items-center gap-1 text-[11px] border border-slate-700"
+                          >
+                            <Edit className="w-3.5 h-3.5 text-emerald-400" /> Edit Lead
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -311,22 +345,27 @@ export default function EnterpriseCRMPage() {
         )}
       </div>
 
-      {/* Add Lead Modal */}
+      {/* Add / Edit Lead Modal */}
       {showAddLead && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-20 sm:pb-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[80vh] sm:max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
-              <h3 className="text-base font-bold text-white">Capture Railway Lead</h3>
+              <h3 className="text-base font-bold text-white">
+                {editingLead ? 'Edit Railway Contractor Lead' : 'Capture Railway Lead'}
+              </h3>
               <button
                 type="button"
-                onClick={() => setShowAddLead(false)}
+                onClick={() => {
+                  setShowAddLead(false);
+                  setEditingLead(null);
+                }}
                 className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
                 title="Close Modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleCreateLead} className="flex flex-col flex-1 overflow-hidden">
+            <form onSubmit={handleSaveLead} className="flex flex-col flex-1 overflow-hidden">
               <div className="p-6 overflow-y-auto space-y-3 text-xs flex-1">
                 <div>
                   <label className="text-slate-400 block mb-1">Contractor Name</label>
@@ -364,13 +403,16 @@ export default function EnterpriseCRMPage() {
               <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-end gap-3 bg-slate-900 flex-shrink-0">
                 <button
                   type="button"
-                  onClick={() => setShowAddLead(false)}
+                  onClick={() => {
+                    setShowAddLead(false);
+                    setEditingLead(null);
+                  }}
                   className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 transition-colors text-xs"
                 >
                   Cancel
                 </button>
                 <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all text-xs">
-                  Save Lead
+                  {editingLead ? 'Update Lead Details' : 'Save Lead'}
                 </button>
               </div>
             </form>
@@ -380,8 +422,8 @@ export default function EnterpriseCRMPage() {
 
       {/* Staff Reply Modal */}
       {activeTicket && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-20 sm:pb-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[80vh] sm:max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
               <h3 className="text-base font-bold text-white">Staff Reply for #{activeTicket.ticketNumber}</h3>
               <button

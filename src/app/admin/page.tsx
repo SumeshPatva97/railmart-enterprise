@@ -752,11 +752,11 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Admin Section Tabs with URL sync */}
-        <div className="flex items-center gap-2 border-b border-slate-800 mb-8 overflow-x-auto pb-2">
+        <div className="flex items-center gap-2 border-b border-slate-800 mb-6 overflow-x-auto no-scrollbar pb-2 min-w-0">
           <button
             onClick={() => handleTabChange('overview')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all ${
-              activeTab === 'overview' ? 'bg-railway-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            className={`px-3.5 py-2.5 sm:px-4 sm:py-2.5 text-xs font-bold rounded-t-xl transition-all whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'overview' ? 'bg-railway-600 text-white shadow-lg shadow-railway-600/30' : 'text-slate-400 hover:text-white bg-slate-900/40'
             }`}
           >
             Order Fulfillment Desk ({stats?.totalOrders ?? orders.length})
@@ -764,8 +764,8 @@ export default function AdminDashboardPage() {
 
           <button
             onClick={() => handleTabChange('products')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all ${
-              activeTab === 'products' ? 'bg-railway-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            className={`px-3.5 py-2.5 sm:px-4 sm:py-2.5 text-xs font-bold rounded-t-xl transition-all whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'products' ? 'bg-railway-600 text-white shadow-lg shadow-railway-600/30' : 'text-slate-400 hover:text-white bg-slate-900/40'
             }`}
           >
             Equipment Inventory ({stats?.totalProducts ?? (products.length || 12)})
@@ -773,8 +773,8 @@ export default function AdminDashboardPage() {
 
           <button
             onClick={() => handleTabChange('users')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-1.5 ${
-              activeTab === 'users' ? 'bg-railway-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            className={`px-3.5 py-2.5 sm:px-4 sm:py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'users' ? 'bg-railway-600 text-white shadow-lg shadow-railway-600/30' : 'text-slate-400 hover:text-white bg-slate-900/40'
             }`}
           >
             <Users className="w-3.5 h-3.5" /> Customers & Users ({stats?.totalUsers ?? (usersList.length || 4)})
@@ -782,8 +782,8 @@ export default function AdminDashboardPage() {
 
           <button
             onClick={() => handleTabChange('logs')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-1.5 ${
-              activeTab === 'logs' ? 'bg-railway-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            className={`px-3.5 py-2.5 sm:px-4 sm:py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'logs' ? 'bg-railway-600 text-white shadow-lg shadow-railway-600/30' : 'text-slate-400 hover:text-white bg-slate-900/40'
             }`}
           >
             <Activity className="w-3.5 h-3.5 text-amber-400" /> Audit Logs ({stats?.totalLogs ?? (auditLogs.length || 1)})
@@ -794,8 +794,8 @@ export default function AdminDashboardPage() {
         {activeTab === 'overview' && (
           <div className="space-y-4">
             {/* Order Status Filters */}
-            <div className="flex flex-wrap items-center gap-2 bg-slate-900 border border-slate-800 p-2 rounded-2xl">
-              <span className="text-xs font-bold text-slate-400 flex items-center gap-1.5 px-3">
+            <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-2 rounded-2xl overflow-x-auto no-scrollbar">
+              <span className="text-xs font-bold text-slate-400 flex items-center gap-1.5 px-2 whitespace-nowrap flex-shrink-0">
                 <Filter className="w-3.5 h-3.5 text-railway-400" /> Filter Orders:
               </span>
               {[
@@ -809,7 +809,7 @@ export default function AdminDashboardPage() {
                 <button
                   key={f.value}
                   onClick={() => setOrderStatusFilter(f.value)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                     orderStatusFilter === f.value
                       ? f.highlight
                         ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
@@ -826,15 +826,15 @@ export default function AdminDashboardPage() {
 
             {/* Orders Data Table */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-              <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+              <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-white">Live Customer Orders & Dispatch Timeline</h3>
               </div>
 
               {loadingOrders && orders.length === 0 ? (
                 <TableSkeleton rows={6} cols={6} />
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-300">
+                <div className="responsive-table-container">
+                  <table className="w-full text-left text-xs text-slate-300 min-w-[700px]">
                     <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
                       <tr>
                         <th className="p-4">Order #</th>
@@ -995,12 +995,12 @@ export default function AdminDashboardPage() {
         {/* Tab 2: Products Manager */}
         {activeTab === 'products' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               {/* Product Sub-tabs (Active vs Trash & Reset Order) */}
-              <div className="flex flex-wrap items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-xl">
+              <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar">
                 <button
                   onClick={() => setProductSubTab('active')}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                     productSubTab === 'active'
                       ? 'bg-railway-600 text-white shadow'
                       : 'text-slate-400 hover:text-white'
@@ -1010,7 +1010,7 @@ export default function AdminDashboardPage() {
                 </button>
                 <button
                   onClick={() => setProductSubTab('trash')}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
                     productSubTab === 'trash'
                       ? 'bg-rose-600 text-white shadow'
                       : 'text-slate-400 hover:text-white'
@@ -1022,7 +1022,7 @@ export default function AdminDashboardPage() {
                 {productSubTab === 'active' && (
                   <button
                     onClick={handleResetSortOrder}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 text-amber-400 hover:text-amber-300 hover:bg-slate-800 shadow"
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 text-amber-400 hover:text-amber-300 hover:bg-slate-800 shadow whitespace-nowrap flex-shrink-0"
                     title="Reset all products sort positions back to default SKU numerical order (01 to 12)"
                   >
                     <RotateCcw className="w-3.5 h-3.5" /> Reset Default Order
@@ -1048,7 +1048,7 @@ export default function AdminDashboardPage() {
                   setUploadedImages([]);
                   setShowAddProduct(true);
                 }}
-                className="bg-railway-600 hover:bg-railway-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-lg shadow-railway-600/30"
+                className="bg-railway-600 hover:bg-railway-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-lg shadow-railway-600/30 w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4" /> Add New Railway Product
               </button>
@@ -1113,7 +1113,8 @@ export default function AdminDashboardPage() {
             ) : (
               productSubTab === 'active' ? (
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-                  <table className="w-full text-left text-xs text-slate-300">
+                  <div className="responsive-table-container">
+                    <table className="w-full text-left text-xs text-slate-300 min-w-[800px]">
                     <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
                       <tr>
                         <th className="p-4 w-12 text-center"></th>
@@ -1260,13 +1261,15 @@ export default function AdminDashboardPage() {
                     </tbody>
                   </table>
                 </div>
+              </div>
               ) : (
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
                   <div className="p-4 bg-rose-500/10 border-b border-rose-500/20 text-rose-300 text-xs font-semibold flex items-center gap-2">
                     <Trash2 className="w-4 h-4 text-rose-400" />
                     <span>Soft-Deleted Products are preserved in the database (is_deleted = 1) and hidden from customers. You can restore them anytime.</span>
                   </div>
-                  <table className="w-full text-left text-xs text-slate-300">
+                  <div className="responsive-table-container">
+                    <table className="w-full text-left text-xs text-slate-300 min-w-[650px]">
                     <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
                       <tr>
                         <th className="p-4">IMAGE</th>
@@ -1318,6 +1321,7 @@ export default function AdminDashboardPage() {
                     </tbody>
                   </table>
                 </div>
+              </div>
               )
             )}
           </div>
@@ -1354,7 +1358,8 @@ export default function AdminDashboardPage() {
               <TableSkeleton rows={5} cols={6} />
             ) : (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-                <table className="w-full text-left text-xs text-slate-300">
+                <div className="responsive-table-container">
+                  <table className="w-full text-left text-xs text-slate-300 min-w-[700px]">
                   <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
                     <tr>
                       <th className="p-4">Customer Name</th>
@@ -1403,9 +1408,10 @@ export default function AdminDashboardPage() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
+      )}
 
         {/* Tab 4: Audit Logs (IMMUTABLE LOGS) */}
         {activeTab === 'logs' && (
@@ -1424,7 +1430,8 @@ export default function AdminDashboardPage() {
               <TableSkeleton rows={5} cols={5} />
             ) : (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-                <table className="w-full text-left text-xs text-slate-300">
+                <div className="responsive-table-container">
+                  <table className="w-full text-left text-xs text-slate-300 min-w-[750px]">
                   <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
                     <tr>
                       <th className="p-4">Timestamp</th>
@@ -1461,15 +1468,16 @@ export default function AdminDashboardPage() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
 
       {/* Add / Edit Customer Modal */}
       {showAddUserModal && (
         <div
-          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-20 sm:pb-4"
           onClick={(e) => {
             if (e.target === e.currentTarget && !isSubmittingUser) {
               setShowAddUserModal(false);
@@ -1477,8 +1485,8 @@ export default function AdminDashboardPage() {
             }
           }}
         >
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[80vh] sm:max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="px-5 py-3.5 sm:px-6 sm:py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
               <h3 className="text-base font-bold text-white">
                 {editingUser ? 'Edit Customer Details' : 'Add New Customer Account'}
               </h3>
@@ -1599,7 +1607,7 @@ export default function AdminDashboardPage() {
       {/* Add / Edit Product Modal */}
       {showAddProduct && (
         <div
-          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-20 sm:pb-4"
           onClick={(e) => {
             if (e.target === e.currentTarget && !isSubmittingProduct) {
               setShowAddProduct(false);
@@ -1607,8 +1615,8 @@ export default function AdminDashboardPage() {
             }
           }}
         >
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full max-h-[80vh] sm:max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="px-5 py-3.5 sm:px-6 sm:py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 flex-shrink-0">
               <h3 className="text-base font-bold text-white">
                 {editingProductSlug ? 'Edit Railway Product' : 'Add New Railway Product'}
               </h3>

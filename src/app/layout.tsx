@@ -4,6 +4,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { WhatsAppButton } from '@/components/common/WhatsAppButton';
 
@@ -30,12 +31,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between">
+      <body className="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden w-full">
         <AuthProvider>
           <CartProvider>
             <Navbar />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 pb-16 sm:pb-0 w-full min-w-0">{children}</main>
             <Footer />
+            <MobileBottomNav />
             <ScrollToTop />
             <WhatsAppButton />
           </CartProvider>
