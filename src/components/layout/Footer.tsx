@@ -29,7 +29,7 @@ export function Footer() {
           <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
             Domain: <strong>denterpriese.softvps.in</strong>. High-Speed IRCTC Tatkal Ticket Booking Tools & Extensions with 7:30 AM to 12:00 AM dedicated support.
           </p>
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col items-start gap-2.5">
             <a
               href={whatsappUrl}
               target="_blank"
@@ -37,6 +37,15 @@ export function Footer() {
               className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-600/20"
             >
               <Send className="w-4 h-4" /> WhatsApp Support (+91 8521012621)
+            </a>
+
+            <a
+              href="https://whatsapp.com/channel/0029Vb8ikne7Noa8Auu2yp0T"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-lg shadow-emerald-500/20"
+            >
+              <Send className="w-4 h-4" /> JOIN OUR CHANNEL FOR DAILY UPDATE
             </a>
           </div>
         </div>

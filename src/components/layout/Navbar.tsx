@@ -343,12 +343,12 @@ export function Navbar() {
               {wishlistIds.length > 0 && <span className="bg-rose-500 text-white px-2 py-0.5 rounded-full text-[10px]">{wishlistIds.length}</span>}
             </Link>
             <a
-              href="https://wa.me/918521012621"
+              href="https://whatsapp.com/channel/0029Vb8ikne7Noa8Auu2yp0T"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold text-emerald-600 dark:text-emerald-400 py-2"
+              className="font-extrabold text-emerald-600 dark:text-emerald-400 py-2 text-xs"
             >
-              Join WhatsApp Channel
+              JOIN OUR CHANNEL FOR DAILY UPDATE
             </a>
 
             <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-slate-700 dark:text-slate-300">

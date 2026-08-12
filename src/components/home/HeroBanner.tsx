@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, ShieldCheck, Zap, Award, Train } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, Award, Train, Send } from 'lucide-react';
 
 export function HeroBanner() {
   return (
@@ -50,7 +50,8 @@ export function HeroBanner() {
               rel="noopener noreferrer"
               className="bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 text-sm font-semibold px-6 py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
             >
-              Chat on WhatsApp (+91 8521012621)
+              <Send className="w-4 h-4" />
+              <span>Chat on WhatsApp (+91 8521012621)</span>
             </a>
           </div>
 
