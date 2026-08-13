@@ -5,7 +5,7 @@ import { slugify } from '@/lib/utils';
 import { productsCache, getCatSlugMap, setCatSlugMap, clearProductsCache } from '@/lib/cache';
 import { saveImageFile } from '@/lib/storage';
 
-const CACHE_TTL_MS = 60000; // 60 seconds cache
+const CACHE_TTL_MS = 300000; // 5 minutes cache
 
 async function getCategoryIdBySlug(slug: string): Promise<string | null> {
   const now = Date.now();
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
         headers: {
           'X-Cache': 'HIT',
           'X-Response-Time': `${Math.round(performance.now() - startTime)}ms`,
-          'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+          'Cache-Control': 'public, max-age=120, s-maxage=300, stale-while-revalidate=600',
         },
       });
     }
@@ -70,24 +70,11 @@ export async function GET(req: NextRequest) {
     }
 
     if (category) {
-      const catId = await getCategoryIdBySlug(category);
-      if (catId) {
-        whereClause.categoryId = catId;
-      } else {
-        whereClause.categoryId = 'non-existent-id';
-      }
+      whereClause.category = { slug: category };
     }
 
     if (brand) {
-      const brandObj = await prisma.brand.findUnique({
-        where: { slug: brand },
-        select: { id: true },
-      });
-      if (brandObj) {
-        whereClause.brandId = brandObj.id;
-      } else {
-        whereClause.brandId = 'non-existent-id';
-      }
+      whereClause.brand = { slug: brand };
     }
 
     if (search) {
@@ -138,8 +125,6 @@ export async function GET(req: NextRequest) {
           slug: true,
           sku: true,
           categoryId: true,
-          description: true,
-          features: true,
           price: true,
           discount: true,
           stock: true,
@@ -197,7 +182,7 @@ export async function GET(req: NextRequest) {
       headers: {
         'X-Cache': 'MISS',
         'X-Response-Time': `${Math.round(performance.now() - startTime)}ms`,
-        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+        'Cache-Control': 'public, max-age=120, s-maxage=300, stale-while-revalidate=600',
       },
     });
   } catch (error: any) {

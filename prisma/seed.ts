@@ -538,18 +538,52 @@ async function main() {
   console.log('✅ 12 Tatkal Products & Images seeded successfully');
 
   // 5. Create Coupons
-  await prisma.coupon.create({
-    data: {
-      code: 'BHIMDADA10',
-      discountType: 'PERCENTAGE',
-      value: 10,
-      minOrderValue: 1000,
-      maxDiscount: 500,
-      validFrom: new Date('2026-01-01'),
-      validUntil: new Date('2027-12-31'),
-      usageLimit: 500,
-      status: 'ACTIVE',
-    },
+  await prisma.coupon.createMany({
+    data: [
+      {
+        code: 'RAIL10',
+        discountType: 'PERCENTAGE',
+        value: 10,
+        minOrderValue: 500,
+        maxDiscount: 2000,
+        validFrom: new Date('2026-01-01'),
+        validUntil: new Date('2028-12-31'),
+        usageLimit: 1000,
+        status: 'ACTIVE',
+      },
+      {
+        code: 'TATKAL5000',
+        discountType: 'FIXED',
+        value: 5000,
+        minOrderValue: 20000,
+        maxDiscount: 5000,
+        validFrom: new Date('2026-01-01'),
+        validUntil: new Date('2028-12-31'),
+        usageLimit: 500,
+        status: 'ACTIVE',
+      },
+      {
+        code: 'WELCOME500',
+        discountType: 'FIXED',
+        value: 500,
+        minOrderValue: 1000,
+        validFrom: new Date('2026-01-01'),
+        validUntil: new Date('2028-12-31'),
+        usageLimit: 200,
+        status: 'ACTIVE',
+      },
+      {
+        code: 'BHIMDADA10',
+        discountType: 'PERCENTAGE',
+        value: 10,
+        minOrderValue: 1000,
+        maxDiscount: 500,
+        validFrom: new Date('2026-01-01'),
+        validUntil: new Date('2028-12-31'),
+        usageLimit: 500,
+        status: 'ACTIVE',
+      },
+    ],
   });
 
   // 6. Create Banner

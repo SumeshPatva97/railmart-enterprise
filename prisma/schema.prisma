@@ -237,6 +237,7 @@ model Coupon {
   usageLimit    Int       @default(100)
   timesUsed     Int       @default(0)
   status        String    @default("ACTIVE")
+  isOnline      Boolean   @default(true)
   createdAt     DateTime  @default(now())
 }
 

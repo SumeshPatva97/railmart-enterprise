@@ -35,6 +35,9 @@ import {
   ChevronUp,
   ChevronDown,
   ArrowUpDown,
+  Tag,
+  Percent,
+  Ticket,
 } from 'lucide-react';
 
 function TableSkeleton({ rows = 5, cols = 6 }: { rows?: number; cols?: number }) {
@@ -74,6 +77,7 @@ export default function AdminDashboardPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [usersList, setUsersList] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [coupons, setCoupons] = useState<any[]>([]);
 
   // Independent API loading booleans per tab (Granular Skeletons)
   const [loadingStats, setLoadingStats] = useState(true);
@@ -81,15 +85,32 @@ export default function AdminDashboardPage() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [loadingLogs, setLoadingLogs] = useState(true);
+  const [loadingCoupons, setLoadingCoupons] = useState(true);
 
   // Async action processing states (Prevent duplicate requests)
   const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
   const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
   const [isSubmittingUser, setIsSubmittingUser] = useState(false);
+  const [isSubmittingCoupon, setIsSubmittingCoupon] = useState(false);
+  const [showAddCouponModal, setShowAddCouponModal] = useState(false);
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   const [adminAlert, setAdminAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Tabs: 'overview' | 'products' | 'users' | 'logs'
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'users' | 'logs'>('overview');
+  const [newCoupon, setNewCoupon] = useState({
+    code: '',
+    discountType: 'PERCENTAGE',
+    value: '',
+    minOrderValue: '0',
+    maxDiscount: '',
+    validFrom: '',
+    validUntil: '',
+    usageLimit: '100',
+    status: 'ACTIVE',
+    isOnline: true,
+  });
+
+  // Tabs: 'overview' | 'products' | 'users' | 'logs' | 'coupons'
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'users' | 'logs' | 'coupons'>('overview');
 
   // Order Status Filter
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('ALL');
@@ -278,6 +299,163 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const fetchCouponsList = async () => {
+    setLoadingCoupons(true);
+    try {
+      const res = await fetch('/api/admin/coupons');
+      if (res.ok) {
+        const data = await res.json();
+        setCoupons(data.coupons || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingCoupons(false);
+    }
+  };
+
+  const handleSaveCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingCoupon(true);
+    try {
+      const isEdit = !!editingCouponId;
+      const url = '/api/admin/coupons';
+      const method = isEdit ? 'PUT' : 'POST';
+      const payload = isEdit ? { ...newCoupon, id: editingCouponId } : newCoupon;
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (isEdit) {
+          setCoupons((prev) => prev.map((c) => (c.id === editingCouponId ? data.coupon : c)));
+        } else {
+          setCoupons((prev) => [data.coupon, ...prev]);
+        }
+        setShowAddCouponModal(false);
+        setEditingCouponId(null);
+        setNewCoupon({
+          code: '',
+          discountType: 'PERCENTAGE',
+          value: '',
+          minOrderValue: '0',
+          maxDiscount: '',
+          validFrom: '',
+          validUntil: '',
+          usageLimit: '100',
+          status: 'ACTIVE',
+          isOnline: true,
+        });
+        setAdminAlert({ type: 'success', message: `Discount coupon ${isEdit ? 'updated' : 'created'} successfully!` });
+        setTimeout(() => setAdminAlert(null), 4000);
+      } else {
+        alert(data.error || 'Failed to save coupon.');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmittingCoupon(false);
+    }
+  };
+
+  const handleToggleCouponStatus = async (id: string, currentStatus: string, code: string) => {
+    const nextStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    const actionText = nextStatus === 'ACTIVE' ? 'activate' : 'deactivate';
+
+    if (!confirm(`Are you sure you want to ${actionText} the coupon "${code}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/coupons', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: nextStatus }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCoupons((prev) => prev.map((c) => (c.id === id ? data.coupon : c)));
+        setAdminAlert({ type: 'success', message: `Coupon "${data.coupon.code}" successfully ${nextStatus === 'ACTIVE' ? 'activated' : 'deactivated'}!` });
+        setTimeout(() => setAdminAlert(null), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleCouponOnline = async (id: string, currentIsOnline: boolean, code: string) => {
+    const nextIsOnline = !currentIsOnline;
+    const actionText = nextIsOnline ? 'enable online customer access for' : 'hide online customer access from';
+
+    if (!confirm(`Are you sure you want to ${actionText} the coupon "${code}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/coupons', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isOnline: nextIsOnline }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCoupons((prev) => prev.map((c) => (c.id === id ? data.coupon : c)));
+        setAdminAlert({ type: 'success', message: `Coupon "${data.coupon.code}" online visibility updated!` });
+        setTimeout(() => setAdminAlert(null), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const openEditCouponModal = (c: any) => {
+    setEditingCouponId(c.id);
+    let validUntilFormatted = '';
+    try {
+      if (c.validUntil) {
+        validUntilFormatted = new Date(c.validUntil).toISOString().split('T')[0];
+      }
+    } catch (e) {}
+
+    let validFromFormatted = '';
+    try {
+      if (c.validFrom) {
+        validFromFormatted = new Date(c.validFrom).toISOString().split('T')[0];
+      }
+    } catch (e) {}
+
+    setNewCoupon({
+      code: c.code || '',
+      discountType: c.discountType || 'PERCENTAGE',
+      value: c.value !== undefined && c.value !== null ? String(c.value) : '',
+      minOrderValue: c.minOrderValue !== undefined && c.minOrderValue !== null ? String(c.minOrderValue) : '0',
+      maxDiscount: c.maxDiscount !== undefined && c.maxDiscount !== null ? String(c.maxDiscount) : '',
+      validFrom: validFromFormatted,
+      validUntil: validUntilFormatted,
+      usageLimit: c.usageLimit !== undefined && c.usageLimit !== null ? String(c.usageLimit) : '100',
+      status: c.status || 'ACTIVE',
+      isOnline: c.isOnline !== undefined ? Boolean(c.isOnline) : true,
+    });
+    setShowAddCouponModal(true);
+  };
+
+  const handleDeleteCoupon = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this coupon?')) return;
+    try {
+      const res = await fetch(`/api/admin/coupons?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setCoupons((prev) => prev.filter((c) => c.id !== id));
+        setAdminAlert({ type: 'success', message: 'Coupon deleted successfully!' });
+        setTimeout(() => setAdminAlert(null), 4000);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const fetchOrdersList = async () => {
     setLoadingOrders(true);
     try {
@@ -290,8 +468,8 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Helper to switch active tab and sync URL query parameter e.g. /admin?tab=products
-  const handleTabChange = (newTab: 'overview' | 'products' | 'users' | 'logs') => {
+  // Helper to switch active tab and sync URL query parameter e.g. /admin?tab=coupons
+  const handleTabChange = (newTab: 'overview' | 'products' | 'users' | 'logs' | 'coupons') => {
     setActiveTab(newTab);
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
@@ -305,8 +483,8 @@ export default function AdminDashboardPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabFromUrl = params.get('tab');
-      if (tabFromUrl === 'products' || tabFromUrl === 'users' || tabFromUrl === 'logs' || tabFromUrl === 'overview') {
-        setActiveTab(tabFromUrl);
+      if (tabFromUrl === 'products' || tabFromUrl === 'users' || tabFromUrl === 'logs' || tabFromUrl === 'overview' || tabFromUrl === 'coupons') {
+        setActiveTab(tabFromUrl as any);
       }
     }
   }, []);
@@ -345,6 +523,8 @@ export default function AdminDashboardPage() {
       if (usersList.length === 0) fetchUsersList();
     } else if (activeTab === 'logs') {
       if (auditLogs.length === 0) fetchAuditLogs();
+    } else if (activeTab === 'coupons') {
+      if (coupons.length === 0) fetchCouponsList();
     }
   }, [activeTab, user]);
 
@@ -787,6 +967,15 @@ export default function AdminDashboardPage() {
             }`}
           >
             <Activity className="w-3.5 h-3.5 text-amber-400" /> Audit Logs ({stats?.totalLogs ?? (auditLogs.length || 1)})
+          </button>
+
+          <button
+            onClick={() => handleTabChange('coupons')}
+            className={`px-3.5 py-2.5 sm:px-4 sm:py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'coupons' ? 'bg-railway-600 text-white shadow-lg shadow-railway-600/30' : 'text-slate-400 hover:text-white bg-slate-900/40'
+            }`}
+          >
+            <Tag className="w-3.5 h-3.5 text-emerald-400" /> Discounts & Coupons ({coupons.length})
           </button>
         </div>
 
@@ -1472,7 +1661,167 @@ export default function AdminDashboardPage() {
           )}
         </div>
       )}
-    </div>
+
+        {/* Tab 5: Coupon & Discount Management */}
+        {activeTab === 'coupons' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-emerald-400" /> Railway Promotional Coupons & Voucher Discounts
+                </h3>
+                <p className="text-[11px] text-slate-400">Create, configure, and monitor promo discount codes for customer purchases.</p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setEditingCouponId(null);
+                  setNewCoupon({
+                    code: '',
+                    discountType: 'PERCENTAGE',
+                    value: '',
+                    minOrderValue: '0',
+                    maxDiscount: '',
+                    validFrom: '',
+                    validUntil: '',
+                    usageLimit: '100',
+                    status: 'ACTIVE',
+                    isOnline: true,
+                  });
+                  setShowAddCouponModal(true);
+                }}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 transition-all"
+              >
+                <Plus className="w-4 h-4" /> Create New Coupon
+              </button>
+            </div>
+
+            {loadingCoupons && coupons.length === 0 ? (
+              <TableSkeleton rows={4} cols={8} />
+            ) : (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div className="responsive-table-container">
+                  <table className="w-full text-left text-xs text-slate-300 min-w-[1150px]">
+                    <thead className="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
+                      <tr>
+                        <th className="p-4 whitespace-nowrap">Coupon Code</th>
+                        <th className="p-4 whitespace-nowrap">Discount Type</th>
+                        <th className="p-4 whitespace-nowrap">Value</th>
+                        <th className="p-4 whitespace-nowrap">Min. Order</th>
+                        <th className="p-4 whitespace-nowrap">Max. Discount</th>
+                        <th className="p-4 whitespace-nowrap">Times Used</th>
+                        <th className="p-4 whitespace-nowrap">Valid Until</th>
+                        <th className="p-4 whitespace-nowrap">Status</th>
+                        <th className="p-4 whitespace-nowrap">Online Visible</th>
+                        <th className="p-4 text-right whitespace-nowrap">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {coupons.map((c) => {
+                        const isExpired = new Date(c.validUntil) < new Date();
+                        const isLimitReached = c.timesUsed >= c.usageLimit;
+
+                        return (
+                          <tr key={c.id} className="hover:bg-slate-800/40 transition-colors">
+                            <td className="p-4 font-mono font-extrabold text-emerald-400 text-sm whitespace-nowrap">
+                              {c.code}
+                            </td>
+                            <td className="p-4 whitespace-nowrap">
+                              <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-bold">
+                                {c.discountType}
+                              </span>
+                            </td>
+                            <td className="p-4 font-extrabold text-white whitespace-nowrap">
+                              {c.discountType === 'PERCENTAGE' ? `${c.value}% OFF` : formatCurrency(c.value)}
+                            </td>
+                            <td className="p-4 text-slate-300 whitespace-nowrap">
+                              {c.minOrderValue > 0 ? formatCurrency(c.minOrderValue) : 'No Minimum'}
+                            </td>
+                            <td className="p-4 text-slate-300 whitespace-nowrap">
+                              {c.maxDiscount ? formatCurrency(c.maxDiscount) : 'Uncapped'}
+                            </td>
+                            <td className="p-4 font-mono text-slate-300 whitespace-nowrap">
+                              {c.timesUsed} / {c.usageLimit}
+                            </td>
+                            <td className="p-4 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                              {formatDate(c.validUntil)}
+                            </td>
+                            <td className="p-4 whitespace-nowrap">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleCouponStatus(c.id, c.status, c.code)}
+                                title={`Click to ${c.status === 'ACTIVE' ? 'deactivate' : 'activate'} ${c.code}`}
+                                className="inline-flex items-center gap-2 cursor-pointer group focus:outline-none whitespace-nowrap"
+                              >
+                                <div
+                                  className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${
+                                    c.status === 'ACTIVE'
+                                      ? 'bg-emerald-500 after:translate-x-5 shadow-lg shadow-emerald-500/30'
+                                      : 'bg-rose-600 after:translate-x-0 shadow-lg shadow-rose-600/30'
+                                  }`}
+                                />
+                              </button>
+                            </td>
+                            <td className="p-4 whitespace-nowrap">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleCouponOnline(c.id, c.isOnline !== false, c.code)}
+                                title={`Click to toggle Online Customer visibility for ${c.code}`}
+                                className="inline-flex items-center gap-2 cursor-pointer group focus:outline-none whitespace-nowrap"
+                              >
+                                <div
+                                  className={`w-9 h-5 rounded-full transition-colors relative flex-shrink-0 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${
+                                    c.isOnline !== false
+                                      ? 'bg-sky-500 after:translate-x-4 shadow-lg shadow-sky-500/30'
+                                      : 'bg-slate-700 after:translate-x-0'
+                                  }`}
+                                />
+                                <span
+                                  className={`text-[10px] font-bold uppercase whitespace-nowrap ${
+                                    c.isOnline !== false ? 'text-sky-400' : 'text-slate-500'
+                                  }`}
+                                >
+                                  {c.isOnline !== false ? 'ONLINE' : 'HIDDEN'}
+                                </span>
+                              </button>
+                            </td>
+                            <td className="p-4 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  onClick={() => openEditCouponModal(c)}
+                                  className="p-1.5 text-slate-400 hover:text-railway-400 hover:bg-slate-800 rounded-lg transition-colors"
+                                  title="Edit Coupon"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCoupon(c.id)}
+                                  className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                                  title="Delete Coupon"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+
+                      {coupons.length === 0 && (
+                        <tr>
+                          <td colSpan={9} className="p-8 text-center text-slate-400">
+                            No active or past promotional coupons found. Click "Create New Coupon" to add one!
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Add / Edit Customer Modal */}
       {showAddUserModal && (
@@ -1866,6 +2215,189 @@ export default function AdminDashboardPage() {
                   ) : (
                     'Save Product'
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Coupon Modal */}
+      {showAddCouponModal && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSubmittingCoupon) {
+              setShowAddCouponModal(false);
+            }
+          }}
+        >
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Tag className="w-4 h-4 text-emerald-400" /> {editingCouponId ? 'Edit Discount Coupon' : 'Create New Discount Coupon'}
+              </h3>
+              <button
+                disabled={isSubmittingCoupon}
+                onClick={() => {
+                  setShowAddCouponModal(false);
+                  setEditingCouponId(null);
+                }}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCoupon} className="p-6 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold flex items-center justify-between">
+                    <span>Coupon Code *</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Max 15 Chars (A-Z, 0-9)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. RAIL20 or TATKAL5000"
+                    maxLength={15}
+                    value={newCoupon.code}
+                    onChange={(e) => {
+                      const sanitized = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 15);
+                      setNewCoupon({ ...newCoupon, code: sanitized });
+                    }}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono uppercase"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Status *</label>
+                  <select
+                    value={newCoupon.status}
+                    onChange={(e) => setNewCoupon({ ...newCoupon, status: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold"
+                  >
+                    <option value="ACTIVE">ACTIVE (Enabled)</option>
+                    <option value="INACTIVE">INACTIVE (Deactivated)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Discount Type *</label>
+                  <select
+                    value={newCoupon.discountType}
+                    onChange={(e) => setNewCoupon({ ...newCoupon, discountType: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                  >
+                    <option value="PERCENTAGE">Percentage (%)</option>
+                    <option value="FIXED">Fixed Amount (₹)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Discount Value *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder={newCoupon.discountType === 'PERCENTAGE' ? 'e.g. 15 for 15%' : 'e.g. 500 for ₹500'}
+                    value={newCoupon.value}
+                    onChange={(e) => setNewCoupon({ ...newCoupon, value: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Min Order Value (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="0 for no minimum"
+                    value={newCoupon.minOrderValue}
+                    onChange={(e) => setNewCoupon({ ...newCoupon, minOrderValue: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Max Discount Cap (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="Optional max cap"
+                    value={newCoupon.maxDiscount}
+                    onChange={(e) => setNewCoupon({ ...newCoupon, maxDiscount: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Valid Until Date *</label>
+                  <input
+                    type="date"
+                    value={newCoupon.validUntil}
+                    onChange={(e) => setNewCoupon({ ...newCoupon, validUntil: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 block mb-1 font-bold">Usage Limit</label>
+                  <input
+                    type="number"
+                    placeholder="100"
+                    value={newCoupon.usageLimit}
+                    onChange={(e) => setNewCoupon({ ...newCoupon, usageLimit: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Online Customer Access Switch */}
+              <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-white text-xs block">Visible to Online Customers</span>
+                  <span className="text-[10px] text-slate-400">
+                    {newCoupon.isOnline ? 'Online customers can apply this coupon.' : 'Hidden from online customers.'}
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={newCoupon.isOnline}
+                    onChange={(e) => setNewCoupon({ ...newCoupon, isOnline: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className={`w-10 h-5 rounded-full transition-colors relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${
+                    newCoupon.isOnline
+                      ? 'bg-sky-500 after:translate-x-5 shadow-lg shadow-sky-500/30'
+                      : 'bg-slate-700 after:translate-x-0'
+                  }`} />
+                </label>
+              </div>
+
+              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddCouponModal(false);
+                    setEditingCouponId(null);
+                  }}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingCoupon}
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-600/30"
+                >
+                  {isSubmittingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : editingCouponId ? 'Update Coupon' : 'Create Coupon'}
                 </button>
               </div>
             </form>

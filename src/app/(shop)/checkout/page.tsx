@@ -6,12 +6,15 @@ import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatCurrency } from '@/lib/utils';
-import { MapPin, CreditCard, Check, Lock, AlertCircle, QrCode, Building2, Copy, CheckCircle2, Info } from 'lucide-react';
+import { MapPin, CreditCard, Check, Lock, AlertCircle, QrCode, Building2, Copy, CheckCircle2, Info, Tag, X } from 'lucide-react';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { cartItems, totals, couponCode, clearCart } = useCart();
+  const { cartItems, totals, couponCode, appliedCoupon, clearCart, applyCoupon, removeCoupon } = useCart();
+  const [couponInput, setCouponInput] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [couponAlert, setCouponAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
@@ -176,7 +179,7 @@ export default function CheckoutPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 mb-6">
           <Lock className="w-5 h-5 text-railway-400" />
-          <h1 className="text-3xl font-extrabold text-white">256-Bit SSL Direct Secure Checkout</h1>
+          <h1 className="text-3xl font-extrabold text-white">Direct Secure Checkout</h1>
         </div>
 
         {validationError && (
@@ -527,6 +530,82 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                 ))}
+              </div>
+
+              {/* Coupon Code Section */}
+              <div className="bg-slate-950 border border-slate-800 p-3 rounded-xl space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                  <Tag className="w-3.5 h-3.5 text-railway-400" />
+                  <span>Promo / Coupon Code</span>
+                </div>
+
+                {couponCode ? (
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 p-2 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <div>
+                        <p className="text-xs font-bold text-emerald-300 uppercase">{couponCode}</p>
+                        <p className="text-[10px] text-emerald-400">
+                          {appliedCoupon?.discountType === 'PERCENTAGE'
+                            ? `${appliedCoupon.value}% OFF`
+                            : `${formatCurrency(appliedCoupon?.value || 0)} OFF`}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        removeCoupon();
+                        setCouponAlert(null);
+                      }}
+                      className="p-1 text-slate-400 hover:text-rose-400 transition-colors"
+                      title="Remove Coupon"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Coupon Code"
+                      maxLength={15}
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 15))}
+                      className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white placeholder:text-slate-500 uppercase focus:outline-none focus:border-railway-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!couponInput.trim()) return;
+                        setApplyingCoupon(true);
+                        setCouponAlert(null);
+                        const res = await applyCoupon(couponInput.trim());
+                        setApplyingCoupon(false);
+                        if (res.success) {
+                          setCouponAlert({ type: 'success', message: res.message || 'Coupon applied!' });
+                          setCouponInput('');
+                        } else {
+                          setCouponAlert({ type: 'error', message: res.message || 'Invalid coupon code.' });
+                        }
+                      }}
+                      disabled={applyingCoupon || !couponInput.trim()}
+                      className="bg-railway-600 hover:bg-railway-500 disabled:opacity-50 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-all"
+                    >
+                      {applyingCoupon ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                )}
+
+                {couponAlert && (
+                  <p
+                    className={`text-[10px] ${
+                      couponAlert.type === 'success' ? 'text-emerald-400' : 'text-rose-400'
+                    }`}
+                  >
+                    {couponAlert.message}
+                  </p>
+                )}
               </div>
 
               <div className="pt-3 border-t border-slate-800 space-y-2 text-xs text-slate-400">

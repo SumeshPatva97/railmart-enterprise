@@ -1,13 +1,50 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { formatCurrency } from '@/lib/utils';
-import { ShoppingBag, Trash2, ArrowRight, Plus, Minus } from 'lucide-react';
+import { ShoppingBag, Trash2, ArrowRight, Plus, Minus, Tag, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
 export default function CartPage() {
-  const { cartItems, totals, updateQuantity, removeFromCart } = useCart();
+  const { cartItems, totals, updateQuantity, removeFromCart, applyCoupon, removeCoupon, couponCode, appliedCoupon } = useCart();
+  const [couponInput, setCouponInput] = useState('');
+  const [applying, setApplying] = useState(false);
+  const [couponAlert, setCouponAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [publicCoupons, setPublicCoupons] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchPublicCoupons() {
+      try {
+        const res = await fetch('/api/coupons/public');
+        if (res.ok) {
+          const data = await res.json();
+          setPublicCoupons(data.coupons || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchPublicCoupons();
+  }, []);
+
+  const handleApplyCoupon = async (codeToApply?: string) => {
+    const targetCode = (codeToApply || couponInput).trim();
+    if (!targetCode) return;
+
+    setApplying(true);
+    setCouponAlert(null);
+
+    const res = await applyCoupon(targetCode);
+    setApplying(false);
+
+    if (res.success) {
+      setCouponAlert({ type: 'success', message: res.message || `Coupon ${targetCode.toUpperCase()} applied successfully!` });
+      setCouponInput('');
+    } else {
+      setCouponAlert({ type: 'error', message: res.message || 'Invalid or expired coupon code.' });
+    }
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -99,14 +136,109 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-5">
               <h3 className="text-base font-bold text-white border-b border-slate-800 pb-3">Order Summary</h3>
+
+              {/* Coupon Redemption Section */}
+              <div className="space-y-3 bg-slate-950/80 border border-slate-800/80 p-3.5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                  <Tag className="w-4 h-4 text-railway-400" />
+                  <span>Promo / Coupon Code</span>
+                </div>
+
+                {couponCode ? (
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 p-2.5 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <div>
+                        <p className="text-xs font-bold text-emerald-300 uppercase">{couponCode}</p>
+                        <p className="text-[10px] text-emerald-400">
+                          {appliedCoupon?.discountType === 'PERCENTAGE'
+                            ? `${appliedCoupon.value}% OFF applied`
+                            : `${formatCurrency(appliedCoupon?.value || 0)} OFF applied`}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        removeCoupon();
+                        setCouponAlert(null);
+                      }}
+                      className="p-1 text-slate-400 hover:text-rose-400 rounded-md transition-colors"
+                      title="Remove Coupon"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. RAIL10 or TATKAL5000"
+                        maxLength={15}
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 15))}
+                        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                        className="flex-1 bg-slate-900 border border-slate-700 focus:border-railway-400 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder:text-slate-500 uppercase focus:outline-none"
+                      />
+                      <button
+                        onClick={() => handleApplyCoupon()}
+                        disabled={applying || !couponInput.trim()}
+                        className="bg-railway-600 hover:bg-railway-500 disabled:opacity-50 text-white font-bold px-3 py-2 rounded-lg text-xs transition-all flex items-center gap-1"
+                      >
+                        {applying ? 'Applying...' : 'Apply'}
+                      </button>
+                    </div>
+
+                    {/* Promo Suggestions */}
+                    {publicCoupons.length > 0 && (
+                      <div className="pt-1 flex items-center gap-1.5 flex-wrap text-[10px]">
+                        <span className="text-slate-400">Available:</span>
+                        {publicCoupons.map((cpn) => (
+                          <button
+                            key={cpn.id}
+                            onClick={() => handleApplyCoupon(cpn.code)}
+                            className="bg-slate-900 border border-slate-700 hover:border-railway-500 text-slate-300 font-mono px-2 py-0.5 rounded transition-colors uppercase cursor-pointer"
+                          >
+                            {cpn.code} ({cpn.discountType === 'PERCENTAGE' ? `${cpn.value}% OFF` : `₹${cpn.value} OFF`})
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {couponAlert && (
+                  <div
+                    className={`text-[11px] p-2 rounded-lg flex items-center gap-2 ${
+                      couponAlert.type === 'success'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                    }`}
+                  >
+                    {couponAlert.type === 'success' ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    )}
+                    <span>{couponAlert.message}</span>
+                  </div>
+                )}
+              </div>
 
               <div className="space-y-2 text-xs text-slate-300">
                 <div className="flex justify-between py-1">
                   <span className="text-slate-400">Subtotal:</span>
                   <span className="font-bold text-white">{formatCurrency(totals.subtotal)}</span>
                 </div>
+
+                {totals.discountAmount > 0 && (
+                  <div className="flex justify-between py-1 text-emerald-400">
+                    <span>Coupon Discount:</span>
+                    <span className="font-bold">-{formatCurrency(totals.discountAmount)}</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between pt-3 border-t border-slate-800 text-sm font-black text-white">
                   <span>Grand Total:</span>

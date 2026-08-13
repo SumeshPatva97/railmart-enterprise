@@ -23,6 +23,7 @@ interface CartContextType {
   removeFromCart: (itemId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   applyCoupon: (code: string) => Promise<{ success: boolean; message?: string }>;
+  removeCoupon: () => void;
   toggleWishlist: (productId: string) => Promise<void>;
   isWishlisted: (productId: string) => boolean;
   refreshCart: () => Promise<void>;
@@ -157,6 +158,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const removeCoupon = () => {
+    setCouponCode(null);
+    setAppliedCoupon(null);
+    setTotals((prev) => ({
+      ...prev,
+      discountAmount: 0,
+      totalAmount: Math.round((prev.subtotal + prev.taxAmount + prev.shippingFee) * 100) / 100,
+    }));
+  };
+
   const toggleWishlist = async (productId: string) => {
     if (!user) {
       window.location.href = '/login';
@@ -189,6 +200,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeFromCart,
         clearCart,
         applyCoupon,
+        removeCoupon,
         toggleWishlist,
         isWishlisted,
         refreshCart,

@@ -28,28 +28,72 @@ export async function GET(
     const { slug } = await params;
     const now = Date.now();
     const cached = productSlugCache.get(slug);
-    if (cached && now - cached.timestamp < SLUG_CACHE_TTL) {
+    if (cached && now - cached.timestamp < 300000) {
       return NextResponse.json(cached.data, {
         headers: {
           'X-Cache': 'HIT',
-          'Cache-Control': 'public, max-age=60, s-maxage=60',
+          'Cache-Control': 'public, max-age=120, s-maxage=300, stale-while-revalidate=600',
         },
       });
     }
 
     const product = await prisma.product.findUnique({
       where: { slug },
-      include: {
-        category: true,
-        brand: true,
-        images: true,
+      select: {
+        id: true,
+        name: true,
+        alternateName: true,
+        slug: true,
+        sku: true,
+        description: true,
+        features: true,
+        price: true,
+        discount: true,
+        stock: true,
+        gstPercent: true,
+        deliveryCharges: true,
+        rating: true,
+        reviewsCount: true,
+        status: true,
+        isVisible: true,
+        isFeatured: true,
+        isPopular: true,
+        is_deleted: true,
+        createdAt: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        brand: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        images: {
+          select: {
+            id: true,
+            url: true,
+            alt: true,
+            isPrimary: true,
+          },
+        },
         reviews: {
-          include: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
             user: {
               select: { name: true, avatar: true },
             },
           },
           orderBy: { createdAt: 'desc' },
+          take: 20,
         },
       },
     });
@@ -64,7 +108,7 @@ export async function GET(
     return NextResponse.json(responsePayload, {
       headers: {
         'X-Cache': 'MISS',
-        'Cache-Control': 'public, max-age=60, s-maxage=60',
+        'Cache-Control': 'public, max-age=120, s-maxage=300, stale-while-revalidate=600',
       },
     });
   } catch (error: any) {

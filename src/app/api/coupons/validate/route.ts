@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
       where: { code: code.toUpperCase() },
     });
 
-    if (!coupon || coupon.status !== 'ACTIVE') {
-      return NextResponse.json({ error: 'Invalid or expired coupon code.' }, { status: 404 });
+    if (!coupon || coupon.status !== 'ACTIVE' || (coupon.isOnline !== undefined && !coupon.isOnline)) {
+      return NextResponse.json({ error: 'Invalid, deactivated, or offline coupon code.' }, { status: 404 });
     }
 
     const now = new Date();
