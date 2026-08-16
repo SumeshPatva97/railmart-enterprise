@@ -46,7 +46,7 @@ export function generateInvoiceHTML(order: any): string {
       <div class="invoice-header">
         <div>
           <h1 class="company-title">D ENTERPRISE TEAM</h1>
-          <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Official IRCTC Tatkal Software & Extension Portal</p>
+          <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Official Tatkal Ticket Booking Software & Extension Portal</p>
         </div>
         <div>
           <h2 class="invoice-title">OFFICIAL INVOICE</h2>

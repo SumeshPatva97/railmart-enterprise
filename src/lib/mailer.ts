@@ -19,7 +19,7 @@ export async function sendOTPEmail(to: string, otp: string, name: string) {
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #1e293b; border-radius: 12px; background-color: #0f172a; color: #f8fafc;">
         <div style="text-align: center; border-bottom: 2px solid #f59e0b; padding-bottom: 15px;">
           <h1 style="color: #ffffff; margin: 0; font-size: 22px;">D <span style="color: #f59e0b;">ENTERPRISE</span> TEAM</h1>
-          <p style="color: #94a3b8; font-size: 13px; margin-top: 5px;">Official IRCTC High-Speed Tatkal Ticket Booking Software & Extensions</p>
+          <p style="color: #94a3b8; font-size: 13px; margin-top: 5px;">Official High-Speed Tatkal Ticket Booking Software & Extensions</p>
         </div>
         <div style="padding: 24px 0;">
           <h2 style="color: #f8fafc; font-size: 18px;">Hello ${name},</h2>

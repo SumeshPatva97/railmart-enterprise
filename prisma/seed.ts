@@ -109,7 +109,7 @@ async function main() {
     data: {
       name: 'Tatkal Booking Software',
       slug: 'tatkal-booking-software',
-      description: 'High-speed automated IRCTC Tatkal ticket booking desktop tools & software.',
+      description: 'High-speed automated Tatkal ticket booking desktop tools & software.',
       image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80',
     },
   });
@@ -132,7 +132,7 @@ async function main() {
       sku: 'TTK-GADAR-01',
       categoryId: catSoftware.id,
       brandId: brandSoftvps.id,
-      description: 'Gadar Tatkal Software ek simple aur efficient booking solution hai jo IRCTC Tatkal tickets ko easy tarike se book karne me madad karta hai. Iska beta version available hai jise aap directly access kar sakte hain. Is version me ek hi time par multiple PNR booking ka support milta hai, jisse process aur fast ho jata hai. Demo version available nahi hai.',
+      description: 'Gadar Tatkal Software ek simple aur efficient booking solution hai jo Tatkal tickets ko easy tarike se book karne me madad karta hai. Iska beta version available hai jise aap directly access kar sakte hain. Is version me ek hi time par multiple PNR booking ka support milta hai, jisse process aur fast ho jata hai. Demo version available nahi hai.',
       features: JSON.stringify([
         'Ek hi time par multiple PNR booking support available hai',
         'Fast performance, easy interface aur smooth workflow',
@@ -194,7 +194,7 @@ async function main() {
       sku: 'TTK-PROMAX-03',
       categoryId: catSoftware.id,
       brandId: brandSoftvps.id,
-      description: 'PRO MAX Tatkal Software – Advanced IRCTC Ticket Booking Solution. PRO MAX Tatkal Software ek advanced aur high-performance booking solution hai jo IRCTC ticket booking process ko fast, smooth aur efficient banane ke liye design kiya gaya hai. Yeh software modern technology aur user-friendly interface ke saath aata hai, jisse booking management aur workflow ko aasani se handle kiya ja sakta hai.',
+      description: 'PRO MAX Tatkal Software – Advanced Ticket Booking Solution. PRO MAX Tatkal Software ek advanced aur high-performance booking solution hai jo ticket booking process ko fast, smooth aur efficient banane ke liye design kiya gaya hai. Yeh software modern technology aur user-friendly interface ke saath aata hai, jisse booking management aur workflow ko aasani se handle kiya ja sakta hai.',
       features: JSON.stringify([
         'High-Speed Performance',
         'User-Friendly Interface',
@@ -292,7 +292,7 @@ async function main() {
       sku: 'TTK-BTS-06',
       categoryId: catSoftware.id,
       brandId: brandSoftvps.id,
-      description: 'Black Turbo Tatkal Software ek original aur trusted Tatkal booking software hai, jo fast booking experience provide karta hai. IRCTC server par heavy traffic ke dauran bhi ye software booking process ko smooth banane mein madad karta hai. Special Offer: Order place karne par 10% cashback automatically wallet mein credit kiya jayega.',
+      description: 'Black Turbo Tatkal Software ek original aur trusted Tatkal booking software hai, jo fast booking experience provide karta hai. Server par heavy traffic ke dauran bhi ye software booking process ko smooth banane mein madad karta hai. Special Offer: Order place karne par 10% cashback automatically wallet mein credit kiya jayega.',
       features: JSON.stringify([
         'Fast Tatkal Booking',
         'Multi PNR Booking Support',
@@ -387,7 +387,7 @@ async function main() {
       sku: 'TTK-AVATAR-09',
       categoryId: catSoftware.id,
       brandId: brandSoftvps.id,
-      description: 'AVATAR Tatkal Software – Advanced High-Speed Booking Solution. AVATAR Tatkal Software ek powerful aur advanced booking solution hai jo IRCTC Tatkal ticket booking ko fast, smooth aur efficient banane ke liye design kiya gaya hai. Yeh software modern technology aur optimized performance ke saath users ko behtar booking experience provide karta hai.',
+      description: 'AVATAR Tatkal Software – Advanced High-Speed Booking Solution. AVATAR Tatkal Software ek powerful aur advanced booking solution hai jo Tatkal ticket booking ko fast, smooth aur efficient banane ke liye design kiya gaya hai. Yeh software modern technology aur optimized performance ke saath users ko behtar booking experience provide karta hai.',
       features: JSON.stringify([
         'High-Speed Booking Performance',
         'Multi PNR Support',

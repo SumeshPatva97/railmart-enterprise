@@ -17,7 +17,7 @@ async function upsertRangerProduct() {
       data: {
         name: 'Tatkal Booking Software',
         slug: 'tatkal-booking-software',
-        description: 'High-speed automated IRCTC Tatkal ticket booking softwares.',
+        description: 'High-speed automated Tatkal ticket booking softwares.',
       },
     });
   }

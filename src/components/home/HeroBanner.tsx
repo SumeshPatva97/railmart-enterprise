@@ -32,7 +32,7 @@ export function HeroBanner() {
           </h1>
 
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl">
-            12 High-Speed IRCTC Tatkal Software & Browser Extensions including GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.
+            12 High-Speed Tatkal Ticket Booking Software & Browser Extensions including GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.
           </p>
 
           <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-2 w-full">
@@ -62,7 +62,7 @@ export function HeroBanner() {
               <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">7:30 AM - 12:00 AM Online Support</span>
             </div>
             <p className="text-slate-400 text-[11px] leading-relaxed">
-              Software, VPS, IP, IRCTC ID aur anya related services available hain. Fast support ke liye contact team: <strong className="text-white">+66805849689</strong>
+              Software, VPS, IP, Booking ID aur anya related services available hain. Fast support ke liye contact team: <strong className="text-white">+66805849689</strong>
             </p>
           </div>
         </motion.div>

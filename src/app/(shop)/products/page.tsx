@@ -136,7 +136,7 @@ function ProductsCatalogContent() {
         <div className="mb-6 sm:mb-8 border-b border-slate-800 pb-4 sm:pb-6">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Tatkal Booking Software & Extensions Catalog</h1>
           <p className="text-slate-400 text-xs sm:text-sm mt-1">
-            Browse all 12 High-Speed IRCTC Tatkal Softwares: GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.
+            Browse all 12 High-Speed Tatkal Ticket Booking Softwares: GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.
           </p>
         </div>
 

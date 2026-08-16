@@ -8,7 +8,7 @@ const categories = [
   {
     title: 'Tatkal Booking Software',
     slug: 'tatkal-booking-software',
-    desc: 'High-speed automated IRCTC Tatkal ticket booking software & desktop automation tools.',
+    desc: 'High-speed automated Tatkal ticket booking software & desktop automation tools.',
     icon: Wrench,
     image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80',
     count: '11 Softwares',

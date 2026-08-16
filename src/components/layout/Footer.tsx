@@ -27,7 +27,7 @@ export function Footer() {
             </span>
           </Link>
           <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-            Domain: <strong>denterpriese.softvps.in</strong>. High-Speed IRCTC Tatkal Ticket Booking Tools & Extensions with 7:30 AM to 12:00 AM dedicated support.
+            Domain: <strong>denterpriese.softvps.in</strong>. High-Speed Tatkal Ticket Booking Tools & Extensions with 7:30 AM to 12:00 AM dedicated support.
           </p>
           <div className="pt-2 flex flex-col items-start gap-2.5">
             <a
@@ -83,7 +83,7 @@ export function Footer() {
             <p className="text-amber-400 font-bold text-xs uppercase tracking-wider">SUPER MASTER BHIMDADA</p>
             <p className="text-emerald-400 font-bold">WhatsApp / Call: +91 8521012621</p>
             <p className="text-slate-300">Support Hours: 7:30 AM to 12:00 AM</p>
-            <p className="text-slate-400">Services: Software, VPS, IP, IRCTC ID</p>
+            <p className="text-slate-400">Services: Software, VPS, IP, Booking ID</p>
           </address>
         </div>
       </div>

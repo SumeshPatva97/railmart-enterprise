@@ -56,7 +56,7 @@ export function FeaturedProducts() {
           <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Official & In-Stock</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">D Enterprise Team Tatkal Softwares</h2>
           <p className="text-slate-400 text-sm mt-3">
-            Top High-Speed IRCTC Tatkal software tools & browser extensions by Super Master Bhimdada.
+            Top High-Speed Tatkal Ticket Booking software tools & browser extensions by Super Master Bhimdada.
           </p>
         </div>
 

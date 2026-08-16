@@ -10,8 +10,8 @@ import { WhatsAppButton } from '@/components/common/WhatsAppButton';
 
 export const metadata: Metadata = {
   title: 'D ENTERPRISE TEAM | Official Tatkal Software & Extension Portal',
-  description: 'Official Portal for IRCTC High-Speed Tatkal Ticket Booking Software & Extensions: GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.',
-  keywords: 'tatkal software, irctc tatkal booking, gadar tatkal, star ts, pro max tatkal, hitman software, bts black turbo, irctc extension, d enterprise team',
+  description: 'Official Portal for High-Speed Tatkal Ticket Booking Software & Extensions: GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.',
+  keywords: 'tatkal software, ticket booking tatkal, gadar tatkal, star ts, pro max tatkal, hitman software, bts black turbo, ticket booking extension, d enterprise team',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'D ENTERPRISE TEAM - Tatkal Software Portal',
-    description: 'Procure official high-speed IRCTC Tatkal softwares and extensions with 7:30 AM to 12:00 AM dedicated support.',
+    description: 'Procure official high-speed Tatkal ticket booking softwares and extensions with 7:30 AM to 12:00 AM dedicated support.',
     type: 'website',
   },
 };

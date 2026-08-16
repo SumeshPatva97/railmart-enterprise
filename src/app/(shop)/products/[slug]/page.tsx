@@ -39,7 +39,7 @@ const productExtraDataMap: Record<string, {
     setupSteps: [
       'Software ka trusted version download karein',
       'System par install karke open karein',
-      'Apne IRCTC login details add karein',
+      'Apne login details add karein',
       'Payment method select karein',
       'Required preferences set karein',
       'Booking details enter karke process start karein',
@@ -116,7 +116,7 @@ const productExtraDataMap: Record<string, {
     faqs: [
       {
         q: 'PRO MAX Tatkal Software kya hai?',
-        a: 'PRO MAX Tatkal Software ek advanced aur high-performance booking solution hai jo IRCTC ticket booking process ko fast, smooth aur efficient banane ke liye design kiya gaya hai.',
+        a: 'PRO MAX Tatkal Software ek advanced aur high-performance booking solution hai jo ticket booking process ko fast, smooth aur efficient banane ke liye design kiya gaya hai.',
       },
       {
         q: 'PRO MAX kin users ke liye suitable hai?',
@@ -332,7 +332,7 @@ const productExtraDataMap: Record<string, {
     faqs: [
       {
         q: 'AVATAR Tatkal Software kya hai?',
-        a: 'AVATAR Tatkal Software ek powerful aur advanced booking solution hai jo IRCTC Tatkal ticket booking ko fast, smooth aur efficient banane ke liye design kiya gaya hai.',
+        a: 'AVATAR Tatkal Software ek powerful aur advanced booking solution hai jo Tatkal ticket booking ko fast, smooth aur efficient banane ke liye design kiya gaya hai.',
       },
       {
         q: 'AVATAR Software ke key benefits kya hain?',
@@ -495,7 +495,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     whyChoose: featuresList,
     setupSteps: [
       'Software download and setup complete karein',
-      'IRCTC login details configure karein',
+      'Login details configure karein',
       'Booking details enter karke process start karein',
     ],
     faqs: [
