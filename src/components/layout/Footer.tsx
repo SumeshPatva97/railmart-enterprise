@@ -76,21 +76,32 @@ export function Footer() {
           </ul>
         </div>
 
-        {/* Col 4: Contact Team */}
+        {/* Col 4: Contact & Legal */}
         <div>
-          <h4 className="text-sm font-bold text-white mb-4">Contact Team</h4>
+          <h4 className="text-sm font-bold text-white mb-4">Contact & Legal</h4>
           <address className="not-italic text-xs leading-relaxed space-y-2 text-slate-400">
             <p className="text-amber-400 font-bold text-xs uppercase tracking-wider">SUPER MASTER BHIMDADA</p>
             <p className="text-emerald-400 font-bold">WhatsApp / Call: +91 8521012621</p>
             <p className="text-slate-300">Support Hours: 7:30 AM to 12:00 AM</p>
-            <p className="text-slate-400">Services: Software, VPS, IP, Booking ID</p>
+            <p className="text-slate-400 mb-3">Services: Software, VPS, IP, Booking ID</p>
           </address>
+          <div className="pt-3 border-t border-slate-900 flex flex-col gap-1.5 text-xs">
+            <Link href="/terms" className="text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+              • Terms & Conditions
+            </Link>
+            <Link href="/privacy" className="text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+              • Privacy Policy
+            </Link>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-900 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
         <p>&copy; {new Date().getFullYear()} D ENTERPRISE TEAM. All Rights Reserved.</p>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+          <Link href="/terms" className="hover:text-amber-400 transition-colors">Terms & Conditions</Link>
+          <Link href="/privacy" className="hover:text-emerald-400 transition-colors">Privacy Policy</Link>
+          <span className="text-slate-600 hidden sm:inline">|</span>
           <span className="text-slate-400">Domain: denterpriese.softvps.in</span>
           <a href={whatsappUrl} target="_blank" rel="noreferrer" className="hover:text-emerald-400 transition-colors">WhatsApp Support</a>
         </div>
