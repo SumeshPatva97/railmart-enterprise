@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/lib/utils';
 import { CheckCircle2, Clock, Package, FileText, ArrowLeft, ShieldCheck, Copy, Check } from 'lucide-react';
+import { DLoader } from '@/components/common/Preloader';
 
-export default function OrderDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const orderId = params?.id as string;
+export default function OrderDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const resolvedParams = use(params);
+  const orderId = resolvedParams.id;
 
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -21,11 +25,11 @@ export default function OrderDetailPage() {
       if (!orderId) return;
       try {
         const res = await fetch(`/api/orders/${orderId}`);
-        if (!res.ok) {
-          setError('Order not found or access denied.');
-        } else {
-          const data = await res.json();
+        const data = await res.json();
+        if (res.ok) {
           setOrder(data.order);
+        } else {
+          setError(data.error || 'Order not found or access denied.');
         }
       } catch (err: any) {
         setError(err.message || 'Failed to load order.');
@@ -38,8 +42,8 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 py-20 text-center text-white flex items-center justify-center">
-        <p className="text-slate-400 font-semibold animate-pulse">Loading order details...</p>
+      <div className="min-h-[75vh] flex flex-col items-center justify-center bg-slate-950 py-20">
+        <DLoader size="md" />
       </div>
     );
   }

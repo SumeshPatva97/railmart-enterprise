@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { WhatsAppButton } from '@/components/common/WhatsAppButton';
+import { Preloader } from '@/components/common/Preloader';
 
 export const metadata: Metadata = {
   title: 'D ENTERPRISE TEAM | Official Tatkal Software & Extension Portal',
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body className="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden w-full">
         <AuthProvider>
           <CartProvider>
+            <Preloader />
             <Navbar />
             <main className="flex-1 pb-16 sm:pb-0 w-full min-w-0">{children}</main>
             <Footer />

@@ -20,6 +20,7 @@ import {
   Download,
   PhoneCall,
 } from 'lucide-react';
+import { DLoader } from '@/components/common/Preloader';
 
 // Product Details Extra Data Mapping from PDF
 const productExtraDataMap: Record<string, {
@@ -474,7 +475,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   }, [slug]);
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-950 py-20 text-center text-amber-400 font-bold">Loading Product Specs...</div>;
+    return (
+      <div className="min-h-[75vh] flex flex-col items-center justify-center bg-slate-950 py-20">
+        <DLoader size="md" />
+      </div>
+    );
   }
 
   if (!product) {
