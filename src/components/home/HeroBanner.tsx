@@ -1,46 +1,161 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { ArrowRight, ShieldCheck, Zap, Award, Train, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Zap, Send, Sparkles, ShieldCheck, PhoneCall } from 'lucide-react';
+
+export function TypewriterText({
+  words = [
+    '12 High-Speed Tatkal Ticket Booking Software',
+    'Instant Auto-Captcha & Bypass Solutions',
+    'Multi-PNR & High Speed Browser Extensions',
+    'Super Master Bhimdada 24/7 Dedicated Support',
+  ],
+  typingSpeed = 80,
+  deletingSpeed = 40,
+  pauseDuration = 2000,
+}: {
+  words?: string[];
+  typingSpeed?: number;
+  deletingSpeed?: number;
+  pauseDuration?: number;
+}) {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [text, setText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentWord = words[wordIndex];
+    let timer: NodeJS.Timeout;
+
+    if (isDeleting) {
+      timer = setTimeout(() => {
+        setText((prev) => prev.slice(0, -1));
+        if (text === '') {
+          setIsDeleting(false);
+          setWordIndex((prev) => (prev + 1) % words.length);
+        }
+      }, deletingSpeed);
+    } else {
+      timer = setTimeout(() => {
+        setText(currentWord.slice(0, text.length + 1));
+        if (text === currentWord) {
+          setTimeout(() => setIsDeleting(true), pauseDuration);
+        }
+      }, typingSpeed);
+    }
+
+    return () => clearTimeout(timer);
+  }, [text, isDeleting, wordIndex, words, typingSpeed, deletingSpeed, pauseDuration]);
+
+  return (
+    <span className="inline-flex items-baseline">
+      <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-200">
+        {text}
+      </span>
+      <span className="w-1.5 h-8 sm:h-10 ml-1.5 bg-amber-400 animate-pulse rounded-full inline-block" />
+    </span>
+  );
+}
 
 export function HeroBanner() {
   return (
     <section className="relative overflow-hidden bg-slate-950 py-20 lg:py-28 border-b border-slate-900">
-      {/* Background Gradient Orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-railway-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
+      {/* Background Animated Gradient Glow Orbs */}
+      <motion.div
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.2, 0.35, 0.2],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+        className="absolute top-0 left-1/4 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"
+      />
+      <motion.div
+        animate={{
+          scale: [1.2, 1, 1.2],
+          opacity: [0.15, 0.3, 0.15],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+        className="absolute bottom-0 right-1/4 w-96 h-96 bg-railway-600/20 rounded-full blur-3xl pointer-events-none"
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        {/* Left Text Content */}
+        {/* Left Column: Staggered Fade-in & Slide-up Content */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.15,
+              },
+            },
+          }}
           className="space-y-6 text-left"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
-            <Zap className="w-3.5 h-3.5 text-amber-400" />
+          {/* Badge */}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold shadow-lg shadow-amber-500/10"
+          >
+            <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
             <span>Official Tatkal Software Portal (denterpriese.softvps.in)</span>
-          </div>
+          </motion.div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-200">
-              D ENTERPRISE TEAM
-            </span>
-          </h1>
+          {/* Typewriter Main Headline */}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="space-y-2"
+          >
+            <h2 className="font-heading text-xl sm:text-2xl font-black text-slate-400 uppercase tracking-wider">
+              D ENTERPRISE TEAM PRESENTS
+            </h2>
+            <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15] min-h-[90px] sm:min-h-[110px]">
+              <TypewriterText />
+            </h1>
+          </motion.div>
 
-          <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl">
-            12 High-Speed Tatkal Ticket Booking Software & Browser Extensions including GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, PANDA, WINDOW TS, AVATAR, OCEAN EXTENSION, BINGO & RANGER.
-          </p>
+          {/* Sub-text description */}
+          <motion.p
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl"
+          >
+            Procure verified high-speed Tatkal booking solutions including <strong className="text-amber-300 font-bold">GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, WINDOW TS, OCEAN EXTENSION & RANGER</strong> with dedicated configuration assistance.
+          </motion.p>
 
-          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-2 w-full">
+          {/* Action CTAs */}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-2 w-full"
+          >
             <Link
               href="/products"
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-extrabold px-7 py-3.5 rounded-xl transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 group w-full sm:w-auto"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-extrabold px-7 py-3.5 rounded-xl transition-all shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 group w-full sm:w-auto hover:scale-105 active:scale-95"
             >
-              <span>Explore Tatkal Softwares</span>
+              <span>Explore All 12 Softwares</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
 
@@ -48,80 +163,123 @@ export function HeroBanner() {
               href="https://wa.me/918521012621"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 text-sm font-semibold px-6 py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
+              className="bg-slate-900/90 hover:bg-slate-800 text-emerald-400 border border-emerald-500/40 text-sm font-semibold px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 w-full sm:w-auto hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/10"
             >
               <Send className="w-4 h-4" />
               <span>Chat on WhatsApp (+91 8521012621)</span>
             </a>
-          </div>
+          </motion.div>
 
-          {/* Message from Super Master Bhimdada */}
-          <div className="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 text-xs text-slate-300 space-y-2">
-            <div className="font-bold text-amber-400 text-sm flex items-center justify-between">
-              <span>📢 MESSAGE FROM SUPER MASTER BHIMDADA :-</span>
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">7:30 AM - 12:00 AM Online Support</span>
-            </div>
-            <p className="text-slate-400 text-[11px] leading-relaxed">
-              Software, VPS, IP, Booking ID aur anya related services available hain. Fast support ke liye contact team: <a href="tel:8521012621" className="text-white hover:text-amber-400 font-bold underline transition-colors">8521012621</a>
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Right Visual Showcase */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="relative"
-        >
-          <div className="relative rounded-3xl overflow-hidden border border-amber-500/30 bg-slate-900/80 p-6 backdrop-blur-xl shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-rose-500" />
-                <div className="w-3 h-3 rounded-full bg-amber-500" />
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="text-xs font-mono text-slate-400 ml-2">denterpriese.softvps.in</span>
-              </div>
-              <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                12 Products Live
+          {/* Super Master Bhimdada Notice Box */}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 text-xs text-slate-300 space-y-2 backdrop-blur-md shadow-xl"
+          >
+            <div className="font-bold text-amber-400 text-xs sm:text-sm flex flex-wrap items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                📢 MESSAGE FROM SUPER MASTER BHIMDADA :-
+              </span>
+              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 font-bold">
+                7:30 AM - 12:00 AM Support
               </span>
             </div>
+            <p className="text-slate-400 text-[11px] leading-relaxed">
+              Software, VPS, IP, Booking ID aur anya related services available hain. Fast support ke liye contact desk:{' '}
+              <a href="tel:8521012621" className="text-white hover:text-amber-400 font-bold underline transition-colors">
+                8521012621
+              </a>
+            </p>
+          </motion.div>
+        </motion.div>
 
-            <div className="grid grid-cols-2 gap-3 text-left">
-              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-bold">1) GADAR</span>
-                <span className="text-sm font-black text-amber-400">₹1,199/-</span>
-                <span className="text-[10px] text-emerald-400 block">Multi PNR Support</span>
+        {/* Right Column: Anti-Gravity Floating Visual Showcase */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative flex items-center justify-center"
+        >
+          {/* Framer Motion Anti-Gravity Floating Card */}
+          <motion.div
+            animate={{
+              y: [0, -18, 0],
+              rotate: [0, 0.8, -0.8, 0],
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            className="w-full max-w-lg"
+          >
+            {/* Ambient Background Glow Layer */}
+            <div className="absolute -inset-1.5 bg-gradient-to-r from-amber-500/40 via-sky-500/30 to-emerald-500/40 rounded-3xl blur-xl opacity-75 animate-pulse" />
+
+            <div className="relative rounded-3xl overflow-hidden border border-amber-500/40 bg-slate-900/90 p-6 sm:p-7 backdrop-blur-2xl shadow-2xl space-y-5">
+              {/* Window Bar */}
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
+                  <div className="w-3 h-3 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+                  <span className="text-xs font-mono text-slate-400 ml-2">denterpriese.softvps.in</span>
+                </div>
+                <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/30 shadow-sm">
+                  ⚡ 12 Softwares Live
+                </span>
               </div>
-              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-bold">2) STAR_TS</span>
-                <span className="text-sm font-black text-amber-400">₹1,149/-</span>
-                <span className="text-[10px] text-emerald-400 block">Smart Automation</span>
+
+              {/* Showcase Grid of Popular Tools */}
+              <div className="grid grid-cols-2 gap-3 text-left">
+                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
+                  <span className="text-[10px] text-slate-400 block font-bold">1) GADAR</span>
+                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,199/-</span>
+                  <span className="text-[10px] text-emerald-400 block font-medium">Multi PNR Support</span>
+                </div>
+                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
+                  <span className="text-[10px] text-slate-400 block font-bold">2) STAR_TS</span>
+                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,149/-</span>
+                  <span className="text-[10px] text-emerald-400 block font-medium">Smart Automation</span>
+                </div>
+                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
+                  <span className="text-[10px] text-slate-400 block font-bold">3) PRO MAX</span>
+                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,499/-</span>
+                  <span className="text-[10px] text-emerald-400 block font-medium">High-Speed Engine</span>
+                </div>
+                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
+                  <span className="text-[10px] text-slate-400 block font-bold">4) HITMAN</span>
+                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,399/-</span>
+                  <span className="text-[10px] text-emerald-400 block font-medium">Smart Assistant</span>
+                </div>
+                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
+                  <span className="text-[10px] text-slate-400 block font-bold">5) SUPERMAN</span>
+                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,599/-</span>
+                  <span className="text-[10px] text-emerald-400 block font-medium">Workflow Master</span>
+                </div>
+                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
+                  <span className="text-[10px] text-slate-400 block font-bold">6) BTS (Black Turbo)</span>
+                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,599/-</span>
+                  <span className="text-[10px] text-rose-400 block font-medium">10% Wallet Cashback</span>
+                </div>
               </div>
-              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-bold">3) PRO MAX</span>
-                <span className="text-sm font-black text-amber-400">₹1,499/-</span>
-                <span className="text-[10px] text-emerald-400 block">High-Speed Engine</span>
-              </div>
-              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-bold">4) HITMAN</span>
-                <span className="text-sm font-black text-amber-400">₹1,399/-</span>
-                <span className="text-[10px] text-emerald-400 block">Smart Assistant</span>
-              </div>
-              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-bold">5) SUPERMAN</span>
-                <span className="text-sm font-black text-amber-400">₹1,599/-</span>
-                <span className="text-[10px] text-emerald-400 block">Workflow Master</span>
-              </div>
-              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-bold">6) BTS (Black Turbo)</span>
-                <span className="text-sm font-black text-amber-400">₹1,599/-</span>
-                <span className="text-[10px] text-rose-400 block">10% Wallet Cashback</span>
+
+              {/* Bottom Trust Tag */}
+              <div className="pt-2 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800/70">
+                <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                  <ShieldCheck className="w-4 h-4" /> 100% Genuine Software
+                </span>
+                <span className="text-slate-500 font-mono text-[11px]">v2.4 Anti-Gravity Engine</span>
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
   );
 }
+
+export default HeroBanner;
