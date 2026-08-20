@@ -62,7 +62,7 @@ export function HeroBanner() {
               <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">7:30 AM - 12:00 AM Online Support</span>
             </div>
             <p className="text-slate-400 text-[11px] leading-relaxed">
-              Software, VPS, IP, Booking ID aur anya related services available hain. Fast support ke liye contact team: <strong className="text-white">+66805849689</strong>
+              Software, VPS, IP, Booking ID aur anya related services available hain. Fast support ke liye contact team: <a href="tel:8521012621" className="text-white hover:text-amber-400 font-bold underline transition-colors">8521012621</a>
             </p>
           </div>
         </motion.div>

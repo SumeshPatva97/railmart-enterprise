@@ -510,7 +510,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
       },
       {
         q: 'Kya support available hai?',
-        a: 'Haan, dedicated support team 7:30 AM se 12:00 AM tak online rehti hai. Contact: +66805849689',
+        a: 'Haan, dedicated support team 7:30 AM se 12:00 AM tak online rehti hai. Contact: 8521012621',
       },
     ],
   };
@@ -672,17 +672,20 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             </div>
 
             {/* Support Highlight Box */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between text-xs">
+            <a
+              href="tel:8521012621"
+              className="bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 hover:border-emerald-500/40 transition-all rounded-2xl p-4 flex items-center justify-between text-xs group cursor-pointer"
+            >
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:scale-110 transition-transform">
                   <PhoneCall className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-white">Super Master Support Desk</h4>
-                  <p className="text-slate-400 text-[11px]">7:30 AM to 12:00 AM Online Support (+66805849689)</p>
+                  <h4 className="font-bold text-white group-hover:text-emerald-400 transition-colors">Super Master Support Desk</h4>
+                  <p className="text-slate-400 text-[11px]">7:30 AM to 12:00 AM Online Support (8521012621)</p>
                 </div>
               </div>
-            </div>
+            </a>
           </div>
         </div>
 

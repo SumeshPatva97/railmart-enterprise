@@ -95,9 +95,6 @@ export function FeaturedProducts() {
                             {product.discount}% OFF
                           </span>
                         )}
-                        <span className="bg-railway-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-md">
-                          {product.gstPercent}% GST
-                        </span>
                       </div>
 
                       {/* Wishlist Button */}

@@ -114,7 +114,7 @@ export function generateInvoiceHTML(order: any): string {
 
       <div class="footer-note">
         <p>This is a computer-generated invoice. Thank you for choosing D ENTERPRISE TEAM.</p>
-        <p>Support: +66805849689 | Domain: denterpriese.softvps.in</p>
+        <p>Support: +91 8521012621 | Domain: denterpriese.softvps.in</p>
       </div>
     </body>
     </html>
