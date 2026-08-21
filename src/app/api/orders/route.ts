@@ -78,6 +78,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Your cart is empty.' }, { status: 400 });
     }
 
+    // Strictly verify that all products in cart are active, visible, and not deleted
+    const unavailableItems = cart.items.filter(
+      (i) => !i.product || i.product.is_deleted === 1 || i.product.isVisible === false || i.product.status !== 'ACTIVE'
+    );
+
+    if (unavailableItems.length > 0) {
+      // Automatically purge unavailable items from the cart
+      await prisma.cartItem.deleteMany({
+        where: { id: { in: unavailableItems.map((i) => i.id) } },
+      });
+
+      const itemNames = unavailableItems.map((i) => i.product?.name || 'Unknown Item').join(', ');
+      return NextResponse.json(
+        {
+          error: `The following product(s) are no longer available in the catalog and have been removed from your cart: "${itemNames}". Please review your updated cart before placing your order.`,
+        },
+        { status: 400 }
+      );
+    }
+
     // Check coupon if provided
     let couponDiscount: any = null;
     if (couponCode) {

@@ -81,8 +81,13 @@ function ProductsCatalogContent() {
         if (maxPrice) params.set('maxPrice', maxPrice);
         if (minRating) params.set('minRating', minRating);
 
-        const res = await fetch(`/api/products?${params.toString()}`, {
+        const res = await fetch(`/api/products?${params.toString()}&_t=${Date.now()}`, {
           signal: controller.signal,
+          cache: 'no-store',
+          headers: {
+            Pragma: 'no-cache',
+            'Cache-Control': 'no-cache',
+          },
         });
         if (res.ok) {
           const data = await res.json();

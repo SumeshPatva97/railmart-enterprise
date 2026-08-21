@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { clearProductsCache } from '@/lib/cache';
@@ -10,7 +11,6 @@ interface SlugCacheEntry {
 }
 
 const productSlugCache = new Map<string, SlugCacheEntry>();
-const SLUG_CACHE_TTL = 60000;
 
 function clearProductSlugCache(slug?: string) {
   if (slug) {
@@ -98,17 +98,20 @@ export async function GET(
       },
     });
 
-    if (!product || product.is_deleted === 1) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    const user = getUserFromRequest(req);
+    const isAdmin = user && user.role === 'ADMIN';
+
+    if (!product || product.is_deleted === 1 || (!product.isVisible && !isAdmin)) {
+      return NextResponse.json({ error: 'Product not found or currently unavailable in catalog' }, { status: 404 });
     }
 
     const responsePayload = { product };
-    productSlugCache.set(slug, { data: responsePayload, timestamp: now });
 
     return NextResponse.json(responsePayload, {
       headers: {
-        'X-Cache': 'MISS',
-        'Cache-Control': 'public, max-age=120, s-maxage=300, stale-while-revalidate=600',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
     });
   } catch (error: any) {
@@ -170,9 +173,32 @@ export async function PUT(
       },
     });
 
+    // Auto-purge from all customer carts & wishlists if disabled or soft-deleted
+    if (body.isVisible === false || body.is_deleted === 1) {
+      await Promise.all([
+        prisma.cartItem.deleteMany({ where: { productId: product.id } }),
+        prisma.wishlist.deleteMany({ where: { productId: product.id } }),
+      ]);
+    }
+
     clearProductSlugCache(slug);
     clearProductsCache();
-    return NextResponse.json({ product, message: 'Product updated successfully.' });
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/products');
+      revalidatePath(`/products/${slug}`);
+      revalidatePath('/wishlist');
+      revalidatePath('/cart');
+      revalidatePath('/admin');
+    } catch {
+      // ignore
+    }
+
+    return NextResponse.json({ product, message: 'Product updated successfully.' }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
@@ -196,9 +222,30 @@ export async function DELETE(
       data: { is_deleted: 1 },
     });
 
+    // Auto-purge from all customer carts & wishlists when product is deleted
+    await Promise.all([
+      prisma.cartItem.deleteMany({ where: { productId: product.id } }),
+      prisma.wishlist.deleteMany({ where: { productId: product.id } }),
+    ]);
+
     clearProductSlugCache(slug);
     clearProductsCache();
-    return NextResponse.json({ product, message: 'Product soft-deleted successfully (can be restored).' });
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/products');
+      revalidatePath(`/products/${slug}`);
+      revalidatePath('/wishlist');
+      revalidatePath('/cart');
+      revalidatePath('/admin');
+    } catch {
+      // ignore
+    }
+
+    return NextResponse.json({ product, message: 'Product soft-deleted successfully (can be restored).' }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }

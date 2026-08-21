@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { slugify } from '@/lib/utils';
 import { productsCache, getCatSlugMap, setCatSlugMap, clearProductsCache } from '@/lib/cache';
 import { saveImageFile } from '@/lib/storage';
-
-const CACHE_TTL_MS = 300000; // 5 minutes cache
 
 async function getCategoryIdBySlug(slug: string): Promise<string | null> {
   const now = Date.now();
@@ -38,22 +37,6 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
 
     const startTime = performance.now();
-    const normalizedSort = sort || 'newest';
-    const normalizedPage = page || 1;
-    const normalizedLimit = limit || 50;
-    const cacheKey = `p_${normalizedPage}_l_${normalizedLimit}_s_${normalizedSort}_c_${category || ''}_b_${brand || ''}_q_${search || ''}_p_${minPrice || ''}_${maxPrice || ''}_r_${minRating || ''}_f_${featured || ''}_pop_${popular || ''}_del_${deletedOnly || ''}_inc_${includeDeleted || ''}_adm_${adminView || ''}`;
-
-    const now = Date.now();
-    const cached = productsCache.get(cacheKey);
-    if (cached && now - cached.timestamp < CACHE_TTL_MS) {
-      return NextResponse.json(cached.data, {
-        headers: {
-          'X-Cache': 'HIT',
-          'X-Response-Time': `${Math.round(performance.now() - startTime)}ms`,
-          'Cache-Control': 'public, max-age=120, s-maxage=300, stale-while-revalidate=600',
-        },
-      });
-    }
 
     const whereClause: any = {};
 
@@ -128,6 +111,7 @@ export async function GET(req: NextRequest) {
           price: true,
           discount: true,
           stock: true,
+          features: true,
           gstPercent: true,
           deliveryCharges: true,
           rating: true,
@@ -175,14 +159,12 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    // Set cache
-    productsCache.set(cacheKey, { data: responsePayload, timestamp: Date.now() });
-
     return NextResponse.json(responsePayload, {
       headers: {
-        'X-Cache': 'MISS',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
         'X-Response-Time': `${Math.round(performance.now() - startTime)}ms`,
-        'Cache-Control': 'public, max-age=120, s-maxage=300, stale-while-revalidate=600',
       },
     });
   } catch (error: any) {
@@ -258,7 +240,19 @@ export async function POST(req: NextRequest) {
     });
 
     clearProductsCache();
-    return NextResponse.json({ product, message: 'Product created successfully.' });
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/products');
+      revalidatePath('/admin');
+    } catch {
+      // ignore
+    }
+
+    return NextResponse.json({ product, message: 'Product created successfully.' }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }

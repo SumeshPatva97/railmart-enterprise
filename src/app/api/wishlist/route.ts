@@ -7,19 +7,44 @@ export async function GET(req: NextRequest) {
     const user = getUserFromRequest(req);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Clean up any disabled or soft-deleted products from user's wishlist
+    await prisma.wishlist.deleteMany({
+      where: {
+        userId: user.id,
+        product: {
+          OR: [
+            { is_deleted: 1 },
+            { isVisible: false },
+            { status: 'OUT_OF_STOCK' },
+          ],
+        },
+      },
+    });
+
     const wishlist = await prisma.wishlist.findMany({
-      where: { userId: user.id },
+      where: {
+        userId: user.id,
+        product: {
+          is_deleted: 0,
+          isVisible: true,
+          status: 'ACTIVE',
+        },
+      },
       include: {
         product: {
           select: {
             id: true,
             name: true,
+            alternateName: true,
             slug: true,
             sku: true,
             price: true,
             discount: true,
             rating: true,
             reviewsCount: true,
+            isVisible: true,
+            is_deleted: true,
+            status: true,
             images: {
               select: { id: true, url: true, isPrimary: true },
             },
@@ -31,7 +56,13 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ wishlist });
+    return NextResponse.json({ wishlist }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
@@ -44,6 +75,19 @@ export async function POST(req: NextRequest) {
 
     const { productId } = await req.json();
     if (!productId) return NextResponse.json({ error: 'Product ID required' }, { status: 400 });
+
+    // Validate product catalog visibility
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true, isVisible: true, is_deleted: true, status: true },
+    });
+
+    if (!product || product.is_deleted === 1 || product.isVisible === false || product.status !== 'ACTIVE') {
+      return NextResponse.json(
+        { error: 'This product is currently disabled or unavailable in the catalog.' },
+        { status: 400 }
+      );
+    }
 
     const existing = await prisma.wishlist.findFirst({
       where: { userId: user.id, productId },

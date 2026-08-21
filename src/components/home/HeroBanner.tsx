@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Zap, Send, Sparkles, ShieldCheck, PhoneCall } from 'lucide-react';
+import { ArrowRight, Zap, Send, Sparkles, ShieldCheck } from 'lucide-react';
+import { ProductType } from '@/types';
 
 export function TypewriterText({
   words = [
@@ -60,6 +61,95 @@ export function TypewriterText({
 }
 
 export function HeroBanner() {
+  const [products, setProducts] = useState<ProductType[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(12);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function fetchHeroProducts() {
+      try {
+        const res = await fetch(`/api/products?limit=50&_t=${Date.now()}`, {
+          signal: controller.signal,
+          cache: 'no-store',
+          headers: {
+            Pragma: 'no-cache',
+            'Cache-Control': 'no-cache',
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.products && Array.isArray(data.products)) {
+            // Strictly check catalog visibility and non-deleted active status
+            const catalogVisibleProducts = data.products.filter(
+              (p: ProductType) =>
+                p.isVisible !== false &&
+                (p.is_deleted === 0 || p.is_deleted === undefined) &&
+                p.status !== 'DRAFT'
+            );
+
+            // Prioritize items with Homepage Card ON (isFeatured: true)
+            const heroFeatured = catalogVisibleProducts.filter((p: ProductType) => Boolean(p.isFeatured));
+            const remaining = catalogVisibleProducts.filter((p: ProductType) => !Boolean(p.isFeatured));
+
+            // Select up to 6 products
+            const finalSelection = (heroFeatured.length > 0 ? [...heroFeatured, ...remaining] : catalogVisibleProducts).slice(0, 6);
+            setProducts(finalSelection);
+          }
+          if (data.pagination?.total) {
+            setTotalCount(data.pagination.total);
+          }
+        }
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error('Failed to load hero banner products:', err);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchHeroProducts();
+    return () => controller.abort();
+  }, []);
+
+  // Helper to extract clean subtitle/feature tag
+  const getProductSubtitle = (product: ProductType, index: number) => {
+    if (product.features) {
+      try {
+        const parsed = typeof product.features === 'string' ? JSON.parse(product.features) : product.features;
+        if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string' && parsed[0].trim()) {
+          return parsed[0];
+        }
+      } catch {
+        // use fallback tag
+      }
+    }
+
+    const fallbackTags: Record<string, string> = {
+      gadar: 'Multi PNR Support',
+      star: 'Smart Automation',
+      'pro-max': 'High-Speed Engine',
+      hitman: 'Smart Assistant',
+      superman: 'Workflow Master',
+      bts: '10% Wallet Cashback',
+      window: 'Windows Optimized',
+      ocean: 'Auto Captcha Bypass',
+      ranger: 'High Speed Engine',
+      bingo: 'Fast Checkout Engine',
+    };
+
+    const searchKey = `${product.slug || ''} ${product.name || ''}`.toLowerCase();
+    for (const [key, tag] of Object.entries(fallbackTags)) {
+      if (searchKey.includes(key)) {
+        return tag;
+      }
+    }
+
+    const defaultTags = ['Multi PNR Support', 'Smart Automation', 'High-Speed Engine', 'Smart Assistant', 'Workflow Master', '10% Wallet Cashback'];
+    return defaultTags[index % defaultTags.length] || '100% Genuine';
+  };
+
   return (
     <section className="relative overflow-hidden bg-slate-950 py-20 lg:py-28 border-b border-slate-900">
       {/* Background Animated Gradient Glow Orbs */}
@@ -140,7 +230,11 @@ export function HeroBanner() {
             }}
             className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl"
           >
-            Procure verified high-speed Tatkal booking solutions including <strong className="text-amber-300 font-bold">GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, WINDOW TS, OCEAN EXTENSION & RANGER</strong> with dedicated configuration assistance.
+            Procure verified high-speed Tatkal booking solutions including{' '}
+            <strong className="text-amber-300 font-bold">
+              GADAR, STAR_TS, PRO MAX, HITMAN, SUPERMAN, BTS, WINDOW TS, OCEAN EXTENSION & RANGER
+            </strong>{' '}
+            with dedicated configuration assistance.
           </motion.p>
 
           {/* Action CTAs */}
@@ -155,7 +249,7 @@ export function HeroBanner() {
               href="/products"
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-extrabold px-7 py-3.5 rounded-xl transition-all shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 group w-full sm:w-auto hover:scale-105 active:scale-95"
             >
-              <span>Explore All 12 Softwares</span>
+              <span>Explore All {totalCount > 0 ? totalCount : 12} Softwares</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
 
@@ -229,42 +323,74 @@ export function HeroBanner() {
                   <span className="text-xs font-mono text-slate-400 ml-2">denterpriese.softvps.in</span>
                 </div>
                 <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/30 shadow-sm">
-                  ⚡ 12 Softwares Live
+                  ⚡ {totalCount > 0 ? totalCount : 12} Softwares Live
                 </span>
               </div>
 
-              {/* Showcase Grid of Popular Tools */}
+              {/* Showcase Grid of Catalog-Visible Products (Max 6 limit) */}
               <div className="grid grid-cols-2 gap-3 text-left">
-                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
-                  <span className="text-[10px] text-slate-400 block font-bold">1) GADAR</span>
-                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,199/-</span>
-                  <span className="text-[10px] text-emerald-400 block font-medium">Multi PNR Support</span>
-                </div>
-                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
-                  <span className="text-[10px] text-slate-400 block font-bold">2) STAR_TS</span>
-                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,149/-</span>
-                  <span className="text-[10px] text-emerald-400 block font-medium">Smart Automation</span>
-                </div>
-                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
-                  <span className="text-[10px] text-slate-400 block font-bold">3) PRO MAX</span>
-                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,499/-</span>
-                  <span className="text-[10px] text-emerald-400 block font-medium">High-Speed Engine</span>
-                </div>
-                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
-                  <span className="text-[10px] text-slate-400 block font-bold">4) HITMAN</span>
-                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,399/-</span>
-                  <span className="text-[10px] text-emerald-400 block font-medium">Smart Assistant</span>
-                </div>
-                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
-                  <span className="text-[10px] text-slate-400 block font-bold">5) SUPERMAN</span>
-                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,599/-</span>
-                  <span className="text-[10px] text-emerald-400 block font-medium">Workflow Master</span>
-                </div>
-                <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/40 transition-colors">
-                  <span className="text-[10px] text-slate-400 block font-bold">6) BTS (Black Turbo)</span>
-                  <span className="text-sm sm:text-base font-black text-amber-400">₹1,599/-</span>
-                  <span className="text-[10px] text-rose-400 block font-medium">10% Wallet Cashback</span>
-                </div>
+                {loading && products.length === 0 ? (
+                  // Elegant Skeleton Loaders (6 items)
+                  [1, 2, 3, 4, 5, 6].map((i) => (
+                    <div
+                      key={i}
+                      className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/60 animate-pulse space-y-2"
+                    >
+                      <div className="h-2.5 bg-slate-800 rounded w-3/4" />
+                      <div className="h-4 bg-amber-500/20 rounded w-1/2" />
+                      <div className="h-2 bg-slate-800/80 rounded w-2/3" />
+                    </div>
+                  ))
+                ) : (
+                  products.slice(0, 6).map((product, idx) => {
+                    const currentPrice = Math.max(0, product.price - (product.discount || 0));
+                    const cleanName =
+                      product.name.replace(/Tatkal (Software|Extension)/gi, '').trim() || product.name;
+                    const subtitle = getProductSubtitle(product, idx);
+                    const tagColor =
+                      idx % 3 === 0
+                        ? 'text-emerald-400'
+                        : idx % 3 === 1
+                        ? 'text-cyan-400'
+                        : 'text-amber-400';
+
+                    return (
+                      <Link
+                        key={product.id || idx}
+                        href={`/products/${product.slug}`}
+                        className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/90 hover:border-amber-500/60 hover:bg-slate-900/90 transition-all block group relative overflow-hidden"
+                      >
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wide truncate group-hover:text-amber-200 transition-colors">
+                            {idx + 1}) {cleanName}
+                          </span>
+                          {product.discount > 0 && (
+                            <span className="text-[9px] font-bold text-rose-400 bg-rose-500/10 px-1 rounded border border-rose-500/20">
+                              OFF
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Current Real Price Display */}
+                        <div className="flex items-baseline gap-1.5 my-0.5">
+                          <span className="text-sm sm:text-base font-black text-amber-400 group-hover:text-yellow-300 transition-colors">
+                            ₹{currentPrice.toLocaleString('en-IN')}/-
+                          </span>
+                          {product.discount > 0 && (
+                            <span className="text-[10px] text-slate-500 line-through">
+                              ₹{product.price.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Feature / Subtitle Highlight */}
+                        <span className={`text-[10px] ${tagColor} block font-medium truncate`}>
+                          {subtitle}
+                        </span>
+                      </Link>
+                    );
+                  })
+                )}
               </div>
 
               {/* Bottom Trust Tag */}
@@ -272,7 +398,7 @@ export function HeroBanner() {
                 <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
                   <ShieldCheck className="w-4 h-4" /> 100% Genuine Software
                 </span>
-                <span className="text-slate-500 font-mono text-[11px]">v2.4 Anti-Gravity Engine</span>
+                
               </div>
             </div>
           </motion.div>

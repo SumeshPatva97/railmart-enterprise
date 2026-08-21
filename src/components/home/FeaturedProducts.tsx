@@ -17,7 +17,14 @@ export function FeaturedProducts() {
 
     async function fetchFeatured() {
       try {
-        const res = await fetch('/api/products?featured=true&limit=6', { signal });
+        const res = await fetch(`/api/products?limit=6&_t=${Date.now()}`, {
+          signal,
+          cache: 'no-store',
+          headers: {
+            Pragma: 'no-cache',
+            'Cache-Control': 'no-cache',
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           setProducts(data.products || []);

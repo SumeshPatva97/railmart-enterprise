@@ -19,12 +19,16 @@ export async function GET(req: NextRequest) {
               select: {
                 id: true,
                 name: true,
+                alternateName: true,
                 slug: true,
                 sku: true,
                 price: true,
                 discount: true,
                 gstPercent: true,
                 deliveryCharges: true,
+                isVisible: true,
+                is_deleted: true,
+                status: true,
                 images: {
                   select: { id: true, url: true, alt: true, isPrimary: true },
                 },
@@ -45,12 +49,16 @@ export async function GET(req: NextRequest) {
                 select: {
                   id: true,
                   name: true,
+                  alternateName: true,
                   slug: true,
                   sku: true,
                   price: true,
                   discount: true,
                   gstPercent: true,
                   deliveryCharges: true,
+                  isVisible: true,
+                  is_deleted: true,
+                  status: true,
                   images: {
                     select: { id: true, url: true, alt: true, isPrimary: true },
                   },
@@ -62,6 +70,26 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Auto-clean any invalid/deleted/hidden products from user's cart
+    if (cart.items && cart.items.length > 0) {
+      const invalidItemIds = cart.items
+        .filter(
+          (item) =>
+            !item.product ||
+            item.product.is_deleted === 1 ||
+            item.product.isVisible === false ||
+            item.product.status !== 'ACTIVE'
+        )
+        .map((item) => item.id);
+
+      if (invalidItemIds.length > 0) {
+        await prisma.cartItem.deleteMany({
+          where: { id: { in: invalidItemIds } },
+        });
+        cart.items = cart.items.filter((item) => !invalidItemIds.includes(item.id));
+      }
+    }
+
     const totals = calculateCartTotals(
       cart.items.map((item) => ({
         price: item.product.price * (1 - item.product.discount / 100),
@@ -71,7 +99,13 @@ export async function GET(req: NextRequest) {
       }))
     );
 
-    return NextResponse.json({ cart, totals });
+    return NextResponse.json({ cart, totals }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
@@ -87,6 +121,19 @@ export async function POST(req: NextRequest) {
     const { productId, quantity = 1 } = await req.json();
     if (!productId) {
       return NextResponse.json({ error: 'Product ID is required.' }, { status: 400 });
+    }
+
+    // Verify product is active, visible, and not deleted
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true, isVisible: true, is_deleted: true, status: true },
+    });
+
+    if (!product || product.is_deleted === 1 || product.isVisible === false || product.status !== 'ACTIVE') {
+      return NextResponse.json(
+        { error: 'This product is currently unavailable or disabled in the catalog.' },
+        { status: 400 }
+      );
     }
 
     let cart = await prisma.cart.findUnique({

@@ -124,6 +124,7 @@ export default function AdminDashboardPage() {
   const [draggedRowIndex, setDraggedRowIndex] = useState<number | null>(null);
   const [dragOverRowIndex, setDragOverRowIndex] = useState<number | null>(null);
   const [togglingVisibilitySlug, setTogglingVisibilitySlug] = useState<string | null>(null);
+  const [togglingHeroSlug, setTogglingHeroSlug] = useState<string | null>(null);
 
   const [newProd, setNewProd] = useState({
     name: '',
@@ -135,6 +136,7 @@ export default function AdminDashboardPage() {
     description: '',
     features: '',
     isVisible: true,
+    isFeatured: false,
     imageUrlInput: '',
   });
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -162,7 +164,13 @@ export default function AdminDashboardPage() {
   const fetchProductsList = async () => {
     setLoadingProducts(true);
     try {
-      const res = await fetch('/api/products?includeDeleted=true&adminView=true&limit=100');
+      const res = await fetch(`/api/products?includeDeleted=true&adminView=true&limit=100&_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          Pragma: 'no-cache',
+          'Cache-Control': 'no-cache',
+        },
+      });
       if (res.ok) {
         const data = await res.json();
         const prods = data.products || [];
@@ -632,6 +640,7 @@ export default function AdminDashboardPage() {
       description: p.description || '',
       features: featText,
       isVisible: p.isVisible !== false,
+      isFeatured: Boolean(p.isFeatured),
       imageUrlInput: '',
     });
     setUploadedImages(p.images?.map((img: any) => img.url) || []);
@@ -672,6 +681,7 @@ export default function AdminDashboardPage() {
           features: (typeof newProd.features === 'string' ? newProd.features : '').split('\n').filter(Boolean),
           images: allImages,
           isVisible: newProd.isVisible,
+          isFeatured: Boolean(newProd.isFeatured),
         }),
       });
 
@@ -690,6 +700,7 @@ export default function AdminDashboardPage() {
           description: '',
           features: '',
           isVisible: true,
+          isFeatured: false,
           imageUrlInput: '',
         });
         setUploadedImages([]);
@@ -709,6 +720,10 @@ export default function AdminDashboardPage() {
   // Toggle Visibility in Catalog
   const handleToggleVisibility = async (slug: string, currentVisibility: boolean) => {
     setTogglingVisibilitySlug(slug);
+    // Instant optimistic update
+    setProducts((prev) =>
+      prev.map((p) => (p.slug === slug ? { ...p, isVisible: !currentVisibility } : p))
+    );
     try {
       const res = await fetch(`/api/products/${slug}`, {
         method: 'PUT',
@@ -716,15 +731,49 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({ isVisible: !currentVisibility }),
       });
       if (res.ok) {
-        setProducts((prev) =>
-          prev.map((p) => (p.slug === slug ? { ...p, isVisible: !currentVisibility } : p))
-        );
         fetchAuditLogs();
+      } else {
+        setProducts((prev) =>
+          prev.map((p) => (p.slug === slug ? { ...p, isVisible: currentVisibility } : p))
+        );
       }
     } catch (err) {
       console.error(err);
+      setProducts((prev) =>
+        prev.map((p) => (p.slug === slug ? { ...p, isVisible: currentVisibility } : p))
+      );
     } finally {
       setTogglingVisibilitySlug(null);
+    }
+  };
+
+  // Toggle Homepage Card Showcase (isFeatured)
+  const handleToggleHomepageCard = async (slug: string, currentFeatured: boolean) => {
+    setTogglingHeroSlug(slug);
+    // Instant optimistic update
+    setProducts((prev) =>
+      prev.map((p) => (p.slug === slug ? { ...p, isFeatured: !currentFeatured } : p))
+    );
+    try {
+      const res = await fetch(`/api/products/${slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isFeatured: !currentFeatured }),
+      });
+      if (res.ok) {
+        fetchAuditLogs();
+      } else {
+        setProducts((prev) =>
+          prev.map((p) => (p.slug === slug ? { ...p, isFeatured: currentFeatured } : p))
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      setProducts((prev) =>
+        prev.map((p) => (p.slug === slug ? { ...p, isFeatured: currentFeatured } : p))
+      );
+    } finally {
+      setTogglingHeroSlug(null);
     }
   };
 
@@ -1232,6 +1281,7 @@ export default function AdminDashboardPage() {
                     description: '',
                     features: '',
                     isVisible: true,
+                    isFeatured: false,
                     imageUrlInput: '',
                   });
                   setUploadedImages([]);
@@ -1311,9 +1361,10 @@ export default function AdminDashboardPage() {
                         <th className="p-4">SKU</th>
                         <th className="p-4">PRODUCT NAME</th>
                         <th className="p-4">CATEGORY</th>
-                        <th className="p-4">PRICE</th>
-                        <th className="p-4">STOCK</th>
-                        <th className="p-4 text-center">CATALOG VISIBILITY</th>
+                        <th className="p-4 font-bold text-white">PRICE</th>
+                        <th className="p-4 font-bold text-white">STOCK</th>
+                        <th className="p-4 text-center whitespace-nowrap">HOMEPAGE CARD</th>
+                        <th className="p-4 text-center whitespace-nowrap">CATALOG VISIBILITY</th>
                         <th className="p-4 text-right">ACTIONS</th>
                       </tr>
                     </thead>
@@ -1321,6 +1372,7 @@ export default function AdminDashboardPage() {
                       {activeProducts.map((p, idx) => {
                         const mainImg = p.images?.[0]?.url || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=100&q=80';
                         const isVisible = p.isVisible !== false;
+                        const isHeroCard = Boolean(p.isFeatured);
 
                         const isBeingDragged = draggedRowIndex === idx;
                         const isDragTarget = dragOverRowIndex === idx && draggedRowIndex !== idx;
@@ -1389,6 +1441,47 @@ export default function AdminDashboardPage() {
                             <td className="p-4">{p.category?.name}</td>
                             <td className="p-4 font-extrabold text-white">{formatCurrency(p.price)}</td>
                             <td className="p-4 font-bold text-emerald-400">{p.stock} units</td>
+                            
+                            {/* Homepage Card Toggle Column */}
+                            <td className="p-4 text-center">
+                              {togglingHeroSlug === p.slug ? (
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950 border border-slate-800 text-[11px] font-bold text-amber-400 animate-pulse">
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                                  <span>Saving...</span>
+                                </div>
+                              ) : (
+                                <label
+                                  className="inline-flex items-center cursor-pointer gap-2 select-none"
+                                  title={`Click to ${isHeroCard ? 'hide from' : 'show on'} Homepage Hero Card`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isHeroCard}
+                                    onChange={() => handleToggleHomepageCard(p.slug, isHeroCard)}
+                                    className="sr-only peer"
+                                  />
+                                  <div
+                                    className={`w-9 h-5 rounded-full transition-colors relative flex items-center p-[2px] ${
+                                      isHeroCard ? 'bg-amber-500' : 'bg-slate-700'
+                                    }`}
+                                  >
+                                    <div
+                                      className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+                                        isHeroCard ? 'translate-x-4' : 'translate-x-0'
+                                      }`}
+                                    />
+                                  </div>
+                                  <span
+                                    className={`text-[11px] font-extrabold transition-colors ${
+                                      isHeroCard ? 'text-amber-400' : 'text-slate-500'
+                                    }`}
+                                  >
+                                    {isHeroCard ? 'Show' : 'Off'}
+                                  </span>
+                                </label>
+                              )}
+                            </td>
+
                             <td className="p-4 text-center">
                               {togglingVisibilitySlug === p.slug ? (
                                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-[11px] font-bold text-amber-400 animate-pulse">
@@ -1442,7 +1535,7 @@ export default function AdminDashboardPage() {
 
                       {activeProducts.length === 0 && (
                         <tr>
-                          <td colSpan={9} className="p-8 text-center text-slate-400">
+                          <td colSpan={10} className="p-8 text-center text-slate-400">
                             No active products in inventory.
                           </td>
                         </tr>
@@ -2184,6 +2277,46 @@ export default function AdminDashboardPage() {
                       newProd.isVisible
                         ? 'bg-emerald-500 after:translate-x-5 shadow-lg shadow-emerald-500/30'
                         : 'bg-rose-600 after:translate-x-0 shadow-lg shadow-rose-600/30'
+                    }`} />
+                  </label>
+                </div>
+
+                {/* Homepage Card Showcase Toggle Switch (Default: OFF) */}
+                <div className={`p-3.5 rounded-xl border flex items-center justify-between transition-colors ${
+                  newProd.isFeatured 
+                    ? 'bg-amber-950/40 border-amber-500/40' 
+                    : 'bg-slate-900 border-slate-800'
+                }`}>
+                  <div>
+                    <span className="font-bold text-white text-xs flex items-center gap-1.5">
+                      <span>Homepage Card Showcase</span>
+                      {newProd.isFeatured ? (
+                        <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                          CARD SHOWCASE (ON)
+                        </span>
+                      ) : (
+                        <span className="bg-slate-800 text-slate-400 border border-slate-700 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                          OFF (DEFAULT)
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                      {newProd.isFeatured 
+                        ? 'Product will be displayed in the Homepage Hero Card (max 6).' 
+                        : 'Default Off: Not highlighted in Homepage Hero Card.'}
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={newProd.isFeatured}
+                      onChange={(e) => setNewProd({ ...newProd, isFeatured: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className={`w-11 h-6 rounded-full transition-colors relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all ${
+                      newProd.isFeatured
+                        ? 'bg-amber-500 after:translate-x-5 shadow-lg shadow-amber-500/30'
+                        : 'bg-slate-700 after:translate-x-0'
                     }`} />
                   </label>
                 </div>

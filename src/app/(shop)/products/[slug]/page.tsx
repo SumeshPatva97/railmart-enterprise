@@ -19,6 +19,8 @@ import {
   Zap,
   Download,
   PhoneCall,
+  AlertCircle,
+  ArrowRight,
 } from 'lucide-react';
 import { DLoader } from '@/components/common/Preloader';
 
@@ -448,7 +450,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
     async function fetchProduct() {
       try {
-        const res = await fetch(`/api/products/${slug}`, { signal });
+        const res = await fetch(`/api/products/${slug}?_t=${Date.now()}`, {
+          signal,
+          cache: 'no-store',
+          headers: {
+            Pragma: 'no-cache',
+            'Cache-Control': 'no-cache',
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           setProduct(data.product);
@@ -483,7 +492,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   }
 
   if (!product) {
-    return <div className="min-h-screen bg-slate-950 py-20 text-center text-white">Product Not Found.</div>;
+    return (
+      <div className="min-h-[70vh] bg-slate-950 flex flex-col items-center justify-center text-center px-4 py-20">
+        <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mb-4 text-amber-400 shadow-xl shadow-amber-500/10">
+          <AlertCircle className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-extrabold text-white">Product Unavailable</h2>
+        <p className="text-slate-400 text-sm mt-2 max-w-md">
+          This product is currently disabled or removed from our online catalog by the administrator.
+        </p>
+        <Link
+          href="/products"
+          className="mt-6 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs px-6 py-3.5 rounded-xl transition-all shadow-xl shadow-amber-500/20 inline-flex items-center gap-2 hover:scale-105 active:scale-95"
+        >
+          <span>Explore Available Softwares</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+    );
   }
 
   const isFav = isWishlisted(product.id);
